@@ -39,6 +39,7 @@ Desktop.ini
 # ASP.NET Core temporary files
 wwwroot/lib/
 wwwroot/dist/
+wwwroot/uploads/
 
 # Dotnet local tools
 .dotnet/
