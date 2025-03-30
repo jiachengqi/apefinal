@@ -1,0 +1,109 @@
+﻿@page "/review-assessment/{id}"
+@inject AssessmentService AssessmentService
+@inject UserService UserService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<RadzenCard Style="max-width: 1400px; margin: 2rem auto; padding: 1rem;">
+    <RadzenButton Text="Back" Click="BackToAssessmentList" ButtonStyle="ButtonStyle.Light" />
+    @if (assessment != null)
+    {
+        <RadzenHeading Size="H3" Text=@($"Assessment ID {assessment.Id.Substring(0, 3)} for Application {assessment.ApplicationID}") />
+        <div style="margin-top: 1rem;">
+            <RadzenLabel Text="Assessment Type:" />
+            <RadzenTextBox Value="@assessment.AssessmentType" ReadOnly="true" Style="width: 100%;" />
+        </div>
+        @if (!string.IsNullOrEmpty(assessment.SolutionDesignImagePath))
+        {
+            <RadzenCard Style="position: relative; width:600px; height:400px; margin-top:1rem; border: 1px solid #ccc;">
+                <img src="@assessment.SolutionDesignImagePath" style="width:600px; height:400px;" />
+                @foreach (var pin in assessment.Pins)
+                {
+                    <div style="position: absolute; left:@(pin.X)px; top:@(pin.Y)px; width:@(pin.Width)px; height:@(pin.Height)px; background-color:#002337; border-radius:50%; cursor:default;"
+                         @onpointerover="() => HoverPin = pin"
+                         @onpointerout="() => HoverPin = null">
+                    </div>
+                }
+                @if (HoverPin != null)
+                {
+                    <div style="position: absolute; left:@(HoverPin.X + TooltipOffsetX)px; top:@(HoverPin.Y - TooltipOffsetY)px; background-color:black; color:white; padding:4px 8px; border-radius:4px; pointer-events:none; white-space:nowrap;">
+                        @HoverPin.Capability?.CapabilityName
+                    </div>
+                }
+            </RadzenCard>
+        }
+        <RadzenHeading Size="H4" Text="Capabilities" Style="margin-top: 1rem;" />
+        <RadzenDataGrid TItem="Capability" Data="@assessment.Capabilities">
+            <Columns>
+                <RadzenDataGridColumn TItem="Capability" Property="Control" Title="Control" />
+                <RadzenDataGridColumn TItem="Capability" Property="SubControlID" Title="SubControl ID" />
+                <RadzenDataGridColumn TItem="Capability" Property="CapabilityName" Title="Capability Name" />
+                <RadzenDataGridColumn TItem="Capability" Property="Checked" Title="Checked" />
+                <RadzenDataGridColumn TItem="Capability" Property="Evidence" Title="Evidence" />
+            </Columns>
+        </RadzenDataGrid>
+        @if (assessment.Status != "Accepted" && assessment.Status != "Rejected" && UserService.Role != "Requester")
+        {
+            <div style="margin-top: 1rem;">
+                <RadzenLabel Text="Justification:" />
+                <RadzenTextArea @bind-Value="justification" Style="width: 100%;" />
+            </div>
+            <div style="margin-top: 1rem;">
+                <RadzenButton Text="Accept" Click="AcceptAssessment" ButtonStyle="ButtonStyle.Primary" Style="margin-right: 10px;" />
+                <RadzenButton Text="Reject" Click="RejectAssessment" ButtonStyle="ButtonStyle.Danger" />
+            </div>
+        }
+        @if (assessment.Status == "Accepted" || assessment.Status == "Rejected")
+        {
+            if (assessment.Justification != null)
+            {
+                <div style="margin-top: 1rem;">
+                    <RadzenLabel Text="Justification:" />
+                    <RadzenTextBox Value="@assessment.Justification" ReadOnly="true" Style="width: 100%;" />
+                </div>
+            }
+        }
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <RadzenAlert Severity="AlertSeverity.Error" Text="@errorMessage" Style="margin-top:1rem;" />
+        }
+    }
+</RadzenCard>
+
+@code {
+    [Parameter] public string Id { get; set; }
+    private Assessment assessment;
+    private string justification;
+    private string errorMessage;
+    private Pin HoverPin;
+    private int TooltipOffsetX = 35;
+    private int TooltipOffsetY = 20;
+    protected override async Task OnInitializedAsync()
+    {
+        assessment = await AssessmentService.GetAssessmentByIdAsync(Id);
+        if (UserService.Role == "Reviewer")
+        {
+            if (assessment.Status != "UnderReview" && assessment.Status != "Accepted" && assessment.Status != "Rejected")
+            {
+                assessment.Status = "UnderReview";
+                assessment.StartReviewAt = DateTime.UtcNow;
+                await AssessmentService.UpdateAssessmentAsync(assessment);
+            }
+        }
+    }
+    private async Task AcceptAssessment() { await AssessmentService.ReviewAssessmentAsync(Id, UserService.Email, "", true); NavigationManager.NavigateTo("/review", true); }
+    private void BackToAssessmentList()
+    {
+        NavigationManager.NavigateTo(UserService.Role == "Requester" ? "/assessments" : "/review", true);
+    }
+    private async Task RejectAssessment()
+    {
+        if (string.IsNullOrEmpty(justification))
+        {
+            errorMessage = "Justification is required";
+            return;
+        }
+        await AssessmentService.ReviewAssessmentAsync(Id, UserService.Email, justification, false);
+        NavigationManager.NavigateTo("/review", true);
+    }
+}

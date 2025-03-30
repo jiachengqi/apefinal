@@ -1,0 +1,202 @@
+﻿@page "/edit-assessment/{id}"
+@inject AssessmentService AssessmentService
+@inject UserService UserService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<RadzenCard Style="max-width: 1400px; margin: 2rem auto; padding: 1rem;">
+    <RadzenButton Text="Back" Click="BackToAssessmentList" ButtonStyle="ButtonStyle.Light" />
+    @if (assessment == null)
+    {
+        <p>Loading...</p>
+    }
+    else
+    {
+        <RadzenHeading Size="H3" Text=@($"Assessment ID {assessment.Id.Substring(0, 3)} for Application {assessment.ApplicationID}") />
+        <div style="margin-top: 1rem;">
+            <RadzenLabel Text="Assessment Type:" />
+            <RadzenTextBox Value="@assessment.AssessmentType" ReadOnly="true" Style="width: 100%;" />
+        </div>
+        <div style="margin-top: 1rem;">
+            <RadzenLabel Text="Upload Solution Design Evidence (JPG/PNG):" />
+            <InputFile OnChange="HandleFileSelected" accept="image/jpeg,image/png" />
+        </div>
+        @if (!string.IsNullOrEmpty(assessment.SolutionDesignImagePath))
+        {
+            <RadzenCard Style="position: relative; width:600px; height:400px; margin-top:1rem; border: 1px solid #ccc;">
+                <img src="@assessment.SolutionDesignImagePath" draggable="false" class="unselectable" style="width:600px; height:400px;" />
+                @foreach (var pin in assessment.Pins)
+                {
+                    <DraggablePin X="@pin.X" Y="@pin.Y" Width="20" Height="20" OnDragEnd="(coords) => UpdatePinPosition(pin, coords)">
+                        <div class="pin-normal" style="width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:bold;">
+                            @pin.DisplayNumber
+                        </div>
+                    </DraggablePin>
+                }
+            </RadzenCard>
+        }
+        <RadzenHeading Size="H4" Text="Pins List" Style="margin-top: 1rem;" />
+        <RadzenDataGrid TItem="Pin" Data="@assessment.Pins" @ref="pinsGrid">
+            <Columns>
+                <RadzenDataGridColumn TItem="Pin" Title="Pin #">
+                    <Template Context="pin">
+                        @pin.DisplayNumber
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Pin" Title="Capability Name">
+                    <Template Context="pin">
+                        @pin.Capability.CapabilityName
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Pin" Title="Actions">
+                    <Template Context="pin">
+                        <RadzenButton Text="Remove Pin" Click="@(async args => await RemovePin(pin))" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" />
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+        <RadzenHeading Size="H4" Text="Capabilities" Style="margin-top: 1rem;" />
+        <RadzenDataGrid TItem="Capability" Data="@assessment.Capabilities">
+            <Columns>
+                <RadzenDataGridColumn TItem="Capability" Property="Control" Title="Control" />
+                <RadzenDataGridColumn TItem="Capability" Property="SubControlID" Title="SubControl ID" />
+                <RadzenDataGridColumn TItem="Capability" Property="CapabilityName" Title="Capability Name" />
+                <RadzenDataGridColumn TItem="Capability" Title="Checked">
+                    <Template Context="cap">
+                        <RadzenDropDown @bind-Value="cap.Checked" Data="@(new List<string>{ "", "implemented", "unfulfilled" })" Style="width: 100%;" />
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Capability" Title="Evidence">
+                    <Template Context="cap">
+                        <RadzenTextBox @bind-Value="cap.Evidence" Style="width: 100%;" />
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Capability" Title="Add Pin">
+                    <Template Context="cap">
+                        <RadzenButton Text="Add Pin" Click="@(async args => await AddPinForCapability(cap))" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+        <div style="margin-top: 1rem;">
+            <RadzenButton Text="Save" Click="SaveAssessment" ButtonStyle="ButtonStyle.Primary" Style="margin-right: 10px;" />
+            <RadzenButton Text="Submit" Click="SubmitAssessment" ButtonStyle="ButtonStyle.Success" />
+        </div>
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <RadzenAlert Severity="AlertSeverity.Error" Text="@errorMessage" Style="margin-top:1rem;" />
+        }
+    }
+</RadzenCard>
+
+@code {
+    [Parameter] public string Id { get; set; }
+    private Assessment assessment;
+    private string errorMessage;
+    private RadzenDataGrid<Pin> pinsGrid;
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            assessment = await AssessmentService.GetAssessmentByIdAsync(Id);
+            ReassignPinNumbers();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading assessment: {ex.Message}";
+        }
+    }
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            var file = e.File;
+            if (file != null)
+            {
+                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.Name)}";
+                var filePath = Path.Combine("wwwroot", "uploads", fileName);
+                Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+                using var stream = new FileStream(filePath, FileMode.Create);
+                await file.OpenReadStream().CopyToAsync(stream);
+                assessment.SolutionDesignImagePath = $"/uploads/{fileName}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error uploading file: {ex.Message}";
+        }
+    }
+    private async Task AddPinForCapability(Capability cap)
+    {
+        var newPin = new Pin
+        {
+            Id = Guid.NewGuid().ToString(),
+            AssessmentId = assessment.Id,
+            CapabilityId = cap.Id,
+            Capability = cap,
+            X = 100,
+            Y = 100,
+            Width = 20,
+            Height = 20
+        };
+        assessment.Pins.Add(newPin);
+        ReassignPinNumbers();
+        await pinsGrid.Reload();
+    }
+    private void UpdatePinPosition(Pin pin, (double X, double Y) coords)
+    {
+        pin.X = coords.X;
+        pin.Y = coords.Y;
+    }
+    private async Task RemovePin(Pin pin)
+    {
+        assessment.Pins.Remove(pin);
+        ReassignPinNumbers();
+        await pinsGrid.Reload();
+    }
+
+    private async Task SaveAssessment()
+    {
+        try
+        {
+            await AssessmentService.UpdateAssessmentAsync(assessment);
+            errorMessage = "Saved successfully.";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error saving assessment: {ex.Message}";
+        }
+    }
+
+    private async Task SubmitAssessment()
+    {
+        try
+        {
+            await AssessmentService.SubmitAssessmentAsync(assessment.Id, UserService.Email);
+            NavigationManager.NavigateTo("/assessments", forceLoad: true);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error submitting assessment: {ex.Message}";
+        }
+    }
+
+    private void BackToAssessmentList()
+    {
+        NavigationManager.NavigateTo("/assessments", forceLoad: true);
+    }
+    
+    
+    private void ReassignPinNumbers()
+    {
+        for (int i = 0; i < assessment.Pins.Count; i++)
+        {
+            assessment.Pins[i].DisplayNumber = i + 1;
+        }
+    }
+}
+
+<style>
+    .pin-normal { background-color: #002337; }
+    .unselectable { user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; -o-user-select: none; }
+</style>

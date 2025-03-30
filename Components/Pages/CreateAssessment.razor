@@ -1,0 +1,34 @@
+﻿@page "/create-assessment"
+@rendermode InteractiveServer
+@inject AssessmentService AssessmentService
+@inject UserService UserService
+@inject NavigationManager NavigationManager
+
+<RadzenCard Style="max-width:500px; margin: 2rem auto; padding: 1rem;">
+    <RadzenHeading Size="H3" Text="Create New Assessment" />
+    <div style="margin-top: 1rem;">
+        <RadzenLabel Text="Assessment Type:" />
+        <RadzenDropDown @bind-Value="assessmentType" Data="@(new List<string> { "Product", "Platform" })" Style="width: 100%;" />
+    </div>
+    <div style="margin-top: 1rem;">
+        <RadzenLabel Text="Application ID:" />
+        <RadzenTextBox @bind-Value="applicationID" Style="width: 100%;" />
+    </div>
+    <RadzenButton Text="Create" Click="CreateNewAssessment" Style="margin-top: 1rem;" ButtonStyle="ButtonStyle.Primary" />
+</RadzenCard>
+
+@code {
+    private string assessmentType = "Product";
+    private string applicationID;
+    private async Task CreateNewAssessment()
+    {
+        var assessment = new Assessment
+        {
+            Email = UserService.Email,
+            AssessmentType = assessmentType,
+            ApplicationID = applicationID
+        };
+        await AssessmentService.CreateAssessmentAsync(assessment, assessmentType);
+        NavigationManager.NavigateTo("/assessments", true);
+    }
+}

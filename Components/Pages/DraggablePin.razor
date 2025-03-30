@@ -1,0 +1,52 @@
+@inject IJSRuntime JS
+
+<div @attributes="AdditionalAttributes"
+     @ref="draggableDiv"
+     style="position: absolute; left:@(X)px; top:@(Y)px; width:@(Width)px; height:@(Height)px; cursor: move;"
+     @onpointerdown="StartDrag">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public double X { get; set; }
+    [Parameter] public double Y { get; set; }
+    [Parameter] public double Width { get; set; } = 20;
+    [Parameter] public double Height { get; set; } = 20;
+    [Parameter] public RenderFragment ChildContent { get; set; }
+    [Parameter] public EventCallback<(double X, double Y)> OnDragEnd { get; set; }
+    [Parameter] public Dictionary<string, object> AdditionalAttributes { get; set; }
+
+    private ElementReference draggableDiv;
+    private double offsetX, offsetY;
+    private DotNetObjectReference<DraggablePin> objRef;
+
+    private async Task StartDrag(PointerEventArgs e)
+    {
+        offsetX = e.ClientX - X;
+        offsetY = e.ClientY - Y;
+        objRef = DotNetObjectReference.Create(this);
+        
+        await JS.InvokeVoidAsync("dragHandler.startDrag", objRef);
+    }
+
+    [JSInvokable]
+    public Task OnPointerMove(double clientX, double clientY)
+    {
+        X = clientX - offsetX;
+        Y = clientY - offsetY;
+        StateHasChanged();
+        
+        return Task.CompletedTask;
+    }
+
+    [JSInvokable]
+    public async Task EndDrag(double clientX, double clientY)
+    {
+        X = clientX - offsetX;
+        Y = clientY - offsetY;
+        await OnDragEnd.InvokeAsync((X, Y));
+        StateHasChanged();
+
+        objRef?.Dispose();
+    }
+}

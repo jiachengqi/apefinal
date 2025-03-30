@@ -1,0 +1,107 @@
+﻿@page "/review"
+@inject AssessmentService AssessmentService
+@inject UserService UserService
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<RadzenButton Text="Home" Click="BackToHome" ButtonStyle="ButtonStyle.Light" />
+<RadzenCard Style="margin: 2rem;">
+    <RadzenHeading Text="Submitted Assessments" />
+    @if (submittedAssessments != null)
+    {
+        <RadzenHeading Size="H4" Text="Pending Assessments" Style="margin-top: 1rem;" />
+        <RadzenDataGrid TItem="Assessment" Data="@submittedAssessments.Where(a => a.Status == "Submitted")">
+            <Columns>
+                <RadzenDataGridColumn TItem="Assessment" Title="ID">
+                    <Template Context="assessment">
+                        @assessment.Id.Substring(0, 3)
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Assessment" Property="AssessmentType" Title="Type" />
+                <RadzenDataGridColumn TItem="Assessment" Property="ApplicationID" Title="Application ID" />
+                <RadzenDataGridColumn TItem="Assessment" Property="SubmittedBy" Title="Submitted By" />
+                <RadzenDataGridColumn TItem="Assessment" Title="Submitted At">
+                    <Template Context="assessment">
+                        @assessment.SubmittedAt?.ToString("yyyy-MM-dd")
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Assessment" Title="Actions">
+                    <Template Context="assessment">
+                        <RadzenButton Text="Start Review" Click="@(args => ReviewAssessment(assessment.Id))" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+        <RadzenHeading Size="H4" Text="Active Assessments" Style="margin-top: 2rem;" />
+        <RadzenDataGrid TItem="Assessment" Data="@submittedAssessments.Where(a => a.Status == "UnderReview")">
+            <Columns>
+                <RadzenDataGridColumn TItem="Assessment" Title="ID">
+                    <Template Context="assessment">
+                        @assessment.Id.Substring(0, 3)
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Assessment" Property="AssessmentType" Title="Type" />
+                <RadzenDataGridColumn TItem="Assessment" Property="ApplicationID" Title="Application ID" />
+                <RadzenDataGridColumn TItem="Assessment" Property="SubmittedBy" Title="Submitted By" />
+                <RadzenDataGridColumn TItem="Assessment" Title="Start Review At">
+                    <Template Context="assessment">
+                        @assessment.StartReviewAt?.ToString("yyyy-MM-dd")
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Assessment" Title="Current Duration">
+                    <Template Context="assessment">
+                        @((int)(DateTime.UtcNow - assessment.StartReviewAt).Value.TotalHours) hours
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Assessment" Title="Actions">
+                    <Template Context="assessment">
+                        <RadzenButton Text="Resume" Click="@(args => ReviewAssessment(assessment.Id))" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+        <RadzenHeading Size="H4" Text="Reviewed Assessments" Style="margin-top: 2rem;" />
+        <RadzenDataGrid TItem="Assessment" Data="@submittedAssessments.Where(a => a.Status == "Accepted" || a.Status == "Rejected")">
+            <Columns>
+                <RadzenDataGridColumn TItem="Assessment" Title="ID">
+                    <Template Context="assessment">
+                        @assessment.Id.Substring(0, 3)
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Assessment" Property="AssessmentType" Title="Type" />
+                <RadzenDataGridColumn TItem="Assessment" Property="ApplicationID" Title="Application ID" />
+                <RadzenDataGridColumn TItem="Assessment" Property="SubmittedBy" Title="Submitted By" />
+                <RadzenDataGridColumn TItem="Assessment" Title="Start Review At">
+                    <Template Context="assessment">
+                        @assessment.StartReviewAt?.ToString("yyyy-MM-dd")
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Assessment" Property="ReviewedBy" Title="Reviewed By" />
+                <RadzenDataGridColumn TItem="Assessment" Title="Reviewed At">
+                    <Template Context="assessment">
+                        @assessment.ReviewedAt?.ToString("yyyy-MM-dd")
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Assessment" Property="Status" Title="Status" />
+                <RadzenDataGridColumn TItem="Assessment" Title="Actions">
+                    <Template Context="assessment">
+                        <RadzenButton Text="View" Click="@(args => ReviewAssessment(assessment.Id))" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    }
+</RadzenCard>
+
+@code {
+    private List<Assessment> submittedAssessments;
+    protected override async Task OnInitializedAsync()
+    {
+        if (UserService.Role == "Reviewer")
+        {
+            submittedAssessments = await AssessmentService.GetSubmittedAssessmentsAsync();
+        }
+    }
+    private void BackToHome() => NavigationManager.NavigateTo("/", true);
+    private void ReviewAssessment(string id) => NavigationManager.NavigateTo($"/review-assessment/{id}", true);
+}

@@ -1,0 +1,8 @@
+ConnectionStrings:
+  DefaultConnection: "Host=postgres;Database=assessmentdb;Username=postgres;Password=password"
+Logging:
+  LogLevel:
+    Default: Information
+    Microsoft: Warning
+    Microsoft.Hosting.Lifetime: Information
+AllowedHosts: "*"

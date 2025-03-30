@@ -1,0 +1,60 @@
+# Build results
+/bin/
+/obj/
+/out/
+
+# User-specific files
+*.user
+*.userosscache
+*.suo
+*.userprefs
+
+# Rider
+.idea/
+*.sln.iml
+
+# Visual Studio Code
+.vscode/
+
+# Visual Studio for Mac
+.vs/
+
+# Mac OS metadata
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows metadata
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# NuGet
+*.nupkg
+/packages/
+
+# Logs
+*.log
+
+# ASP.NET Core temporary files
+wwwroot/lib/
+wwwroot/dist/
+
+# Dotnet local tools
+.dotnet/
+
+# Build artifacts
+*.pidb
+*.svd
+
+# Backup & report files
+*_i.c
+*_p.c
+*.ncb
+*.aps
+*.pch
+*.sbr
+
+
+
+logfile
