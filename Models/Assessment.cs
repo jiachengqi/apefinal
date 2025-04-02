@@ -10,6 +10,7 @@ namespace apenew.Models
         public string? SubmittedBy { get; set; }
         public DateTime? ReviewedAt { get; set; }
         public DateTime? StartReviewAt { get; set; }
+        public string? StartReviewBy { get; set; }
         public string? ReviewedBy { get; set; }
         public string Status { get; set; }
         public string AssessmentType { get; set; }

@@ -63,7 +63,7 @@
                 <RadzenDataGridColumn TItem="Capability" Property="CapabilityName" Title="Capability Name" />
                 <RadzenDataGridColumn TItem="Capability" Title="Checked">
                     <Template Context="cap">
-                        <RadzenDropDown @bind-Value="cap.Checked" Data="@(new List<string>{ "", "implemented", "unfulfilled" })" Style="width: 100%;" />
+                        <RadzenDropDown @bind-Value="cap.Checked" Data="@(new List<string>{ "", "fulfilled", "unfulfilled" })" Style="width: 100%;" />
                     </Template>
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="Capability" Title="Evidence">
@@ -201,5 +201,24 @@
     .unselectable { user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; -o-user-select: none; }
     .rz-button.rz-primary.rz-shade-default {
         background-color: #00436a;
+    }
+    rz-button.rz-success.rz-shade-default {
+        background-color: #006db9;
+    }
+    .rz-button.rz-success.rz-shade-default {
+        background-color: #006db9;
+    }
+    .rz-button.rz-success {
+        background-color: #006db9;
+    }
+
+    .rz-button.rz-danger.rz-shade-default {
+        background-color: #f0f7fa;
+        color: black;
+    }
+
+    .rz-button.rz-danger {
+        background-color: #f0f7fa;
+        color: black;
     }
 </style>

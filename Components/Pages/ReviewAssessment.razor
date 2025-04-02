@@ -86,6 +86,7 @@
             if (assessment.Status != "UnderReview" && assessment.Status != "Accepted" && assessment.Status != "Rejected")
             {
                 assessment.Status = "UnderReview";
+                assessment.StartReviewBy = UserService.Email;
                 assessment.StartReviewAt = DateTime.UtcNow;
                 await AssessmentService.UpdateAssessmentAsync(assessment);
             }
@@ -112,4 +113,14 @@
 .rz-button.rz-primary.rz-shade-default {
         background-color: #00436a;
     }
+
+.rz-button.rz-danger.rz-shade-default {
+    background-color: #f0f7fa;
+    color: black;
+}
+
+.rz-button.rz-danger {
+    background-color: #f0f7fa;
+    color: black;
+}
 </style>

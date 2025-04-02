@@ -4,18 +4,22 @@
 @inject UserService UserService
 @inject NavigationManager NavigationManager
 
-<RadzenCard Style="max-width:500px; margin: 2rem auto; padding: 1rem;">
-    <RadzenHeading Size="H3" Text="Create New Assessment" />
-    <div style="margin-top: 1rem;">
-        <RadzenLabel Text="Assessment Type:" />
-        <RadzenDropDown @bind-Value="assessmentType" Data="@(new List<string> { "Product", "Platform" })" Style="width: 100%;" />
+<RadzenButton Text="Home" Click="BackToHome" ButtonStyle="ButtonStyle.Light" />
+
+<div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+    <div style="max-width: 400px; width: 100%; padding: 1rem; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 5px; background-color: white;">
+        <h3 style="text-align: center;">New Assessment</h3>
+        <div style="margin-top: 1rem;">
+            <RadzenLabel Text="Assessment Type:" />
+            <RadzenDropDown @bind-Value="assessmentType" Data="@(new List<string> { "Product", "Platform" })" Style="width: 100%;" />
+        </div>
+        <div style="margin-top: 1rem;">
+            <RadzenLabel Text="Application ID:" />
+            <RadzenTextBox @bind-Value="applicationID" Style="width: 100%;" />
+        </div>
+        <RadzenButton Text="Create" Click="CreateNewAssessment" Style="margin-top: 1rem;" ButtonStyle="ButtonStyle.Primary" />
     </div>
-    <div style="margin-top: 1rem;">
-        <RadzenLabel Text="Application ID:" />
-        <RadzenTextBox @bind-Value="applicationID" Style="width: 100%;" />
-    </div>
-    <RadzenButton Text="Create" Click="CreateNewAssessment" Style="margin-top: 1rem;" ButtonStyle="ButtonStyle.Primary" />
-</RadzenCard>
+</div>
 
 @code {
     private string assessmentType = "Product";
@@ -31,6 +35,8 @@
         await AssessmentService.CreateAssessmentAsync(assessment, assessmentType);
         NavigationManager.NavigateTo("/assessments", true);
     }
+    
+    private void BackToHome() => NavigationManager.NavigateTo("/", true);
 }
 
 <style>

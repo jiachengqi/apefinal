@@ -7,8 +7,8 @@
     <div style="max-width: 400px; width: 100%; padding: 1rem; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 5px; background-color: white;">
         <h3 style="text-align: center;">Login</h3>
         <RadzenLabel Text="Email:" />
-        <RadzenTextBox @bind-Value="email" Style="width: 100%;" />
-        <RadzenLabel Text="Role:" Style="margin-top: 1rem;" />
+        <RadzenTextBox @bind-Value="email" Style="width: 100%; " />
+        <RadzenLabel Text="Role:" Style="margin-top: 1rem; color: #00436a" />
         <RadzenDropDown @bind-Value="role" Data="roles" TextProperty="Role" ValueProperty="Role" Style="width: 100%;" />
         <RadzenButton Text="Login" Click="LoginButton" Style="margin-top: 1rem; width: 100%;" ButtonStyle="ButtonStyle.Primary" />
     </div>
@@ -35,4 +35,14 @@
 .rz-button.rz-primary.rz-shade-default {
         background-color: #00436a;
     }
+
+.radzen-dropdown .ui-dropdown:focus {
+    background-color: #00436a;
+}
+
+/* Change border color for RadzenTextBox when focused */
+.radzen-textbox .ui-inputtext:focus {
+    background-color: #00436a;
+}
+
 </style>

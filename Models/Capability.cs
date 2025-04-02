@@ -11,6 +11,7 @@ namespace apenew.Models
         public string? Checked { get; set; }
         public string? Evidence { get; set; }
 
+        public int? CapabilityId { get; set; }
         public Assessment? Assessment { get; set; }
     }
 }
