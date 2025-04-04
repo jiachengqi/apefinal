@@ -48,6 +48,7 @@
                         @assessment.StartReviewAt?.ToString("yyyy-MM-dd")
                     </Template>
                 </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Assessment" Property="StartReviewBy" Title="Start Review By" />
                 <RadzenDataGridColumn TItem="Assessment" Title="Current Duration">
                     <Template Context="assessment">
                         @((int)(DateTime.UtcNow - assessment.StartReviewAt).Value.TotalHours) hours

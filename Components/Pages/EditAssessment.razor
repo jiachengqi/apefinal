@@ -36,21 +36,18 @@
             </RadzenCard>
         }
         <RadzenHeading Size="H4" Text="Pins List" Style="margin-top: 1rem;" />
-        <RadzenDataGrid TItem="Pin" Data="@assessment.Pins" @ref="pinsGrid">
+        <RadzenDataGrid TItem="GroupedPin" Data="@groupedPins" @ref="pinsGrid">
             <Columns>
-                <RadzenDataGridColumn TItem="Pin" Title="Pin #">
-                    <Template Context="pin">
-                        @pin.DisplayNumber
-                    </Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Pin" Title="Capability Name">
-                    <Template Context="pin">
-                        @pin.Capability.CapabilityName
-                    </Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn TItem="Pin" Title="Actions">
-                    <Template Context="pin">
-                        <RadzenButton Text="Remove Pin" Click="@(async args => await RemovePin(pin))" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" />
+                <RadzenDataGridColumn TItem="GroupedPin" Property="CapabilityName" Title="Capability Name" />
+                <RadzenDataGridColumn TItem="GroupedPin" Title="Pins">
+                    <Template Context="group">
+                        @foreach (var pin in group.Pins)
+                        {
+                            <div>
+                                Pin #: @pin.DisplayNumber
+                                <RadzenButton Text="Remove" Click="@(async args => await RemovePin(pin))" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" />
+                            </div>
+                        }
                     </Template>
                 </RadzenDataGridColumn>
             </Columns>
@@ -60,7 +57,7 @@
             <Columns>
                 <RadzenDataGridColumn TItem="Capability" Property="Control" Title="Control" />
                 <RadzenDataGridColumn TItem="Capability" Property="SubControlID" Title="SubControl ID" />
-                <RadzenDataGridColumn TItem="Capability" Property="CapabilityName" Title="Capability Name" />
+                <RadzenDataGridColumn TItem="Capability" Property="CapabilityName" Title="Capability" />
                 <RadzenDataGridColumn TItem="Capability" Title="Checked">
                     <Template Context="cap">
                         <RadzenDropDown @bind-Value="cap.Checked" Data="@(new List<string>{ "", "fulfilled", "unfulfilled" })" Style="width: 100%;" />
@@ -93,19 +90,35 @@
     [Parameter] public string Id { get; set; }
     private Assessment assessment;
     private string errorMessage;
-    private RadzenDataGrid<Pin> pinsGrid;
+    private RadzenDataGrid<GroupedPin> pinsGrid;
+    private IEnumerable<GroupedPin> groupedPins;
+
     protected override async Task OnInitializedAsync()
     {
         try
         {
             assessment = await AssessmentService.GetAssessmentByIdAsync(Id);
             ReassignPinNumbers();
+            GroupPinsByCapability();
         }
         catch (Exception ex)
         {
             errorMessage = $"Error loading assessment: {ex.Message}";
         }
     }
+
+    private void GroupPinsByCapability()
+    {
+        groupedPins = assessment.Pins
+            .GroupBy(p => p.CapabilityId)
+            .Select(g => new GroupedPin
+            {
+                CapabilityName = g.First().Capability.CapabilityName,
+                Pins = g.ToList()
+            })
+            .ToList();
+    }
+
     private async Task HandleFileSelected(InputFileChangeEventArgs e)
     {
         try
@@ -126,6 +139,7 @@
             errorMessage = $"Error uploading file: {ex.Message}";
         }
     }
+
     private async Task AddPinForCapability(Capability cap)
     {
         var newPin = new Pin
@@ -141,17 +155,21 @@
         };
         assessment.Pins.Add(newPin);
         ReassignPinNumbers();
+        GroupPinsByCapability();
         await pinsGrid.Reload();
     }
+
     private void UpdatePinPosition(Pin pin, (double X, double Y) coords)
     {
         pin.X = coords.X;
         pin.Y = coords.Y;
     }
+
     private async Task RemovePin(Pin pin)
     {
         assessment.Pins.Remove(pin);
         ReassignPinNumbers();
+        GroupPinsByCapability();
         await pinsGrid.Reload();
     }
 
@@ -185,14 +203,19 @@
     {
         NavigationManager.NavigateTo("/assessments", forceLoad: true);
     }
-    
-    
+
     private void ReassignPinNumbers()
     {
         for (int i = 0; i < assessment.Pins.Count; i++)
         {
             assessment.Pins[i].DisplayNumber = i + 1;
         }
+    }
+
+    private class GroupedPin
+    {
+        public string CapabilityName { get; set; }
+        public List<Pin> Pins { get; set; }
     }
 }
 
@@ -201,9 +224,6 @@
     .unselectable { user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; -o-user-select: none; }
     .rz-button.rz-primary.rz-shade-default {
         background-color: #00436a;
-    }
-    rz-button.rz-success.rz-shade-default {
-        background-color: #006db9;
     }
     .rz-button.rz-success.rz-shade-default {
         background-color: #006db9;

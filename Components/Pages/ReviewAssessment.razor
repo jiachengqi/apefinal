@@ -19,7 +19,16 @@
                 <img src="@assessment.SolutionDesignImagePath" style="width:600px; height:400px;" />
                 @foreach (var pin in assessment.Pins)
                 {
-                    <div style="position: absolute; left:@(pin.X)px; top:@(pin.Y)px; width:@(pin.Width)px; height:@(pin.Height)px; background-color:#002337; border-radius:50%; cursor:default;"
+                    @if ((HoverPin != null && HoverPin.CapabilityId == pin.CapabilityId) || (selectedCapability!= null && pin.Capability == selectedCapability))
+                    {
+                        backgroundColor = "#d4c404";
+                    }
+                    else
+                    {
+                        backgroundColor = "#002337";
+                    }
+
+                    <div style="position: absolute; left:@(pin.X)px; top:@(pin.Y)px; width:@(pin.Width)px; height:@(pin.Height)px; background-color:@backgroundColor; border-radius:50%; cursor:default;"
                          @onpointerover="() => HoverPin = pin"
                          @onpointerout="() => HoverPin = null">
                     </div>
@@ -29,17 +38,52 @@
                     <div style="position: absolute; left:@(HoverPin.X + TooltipOffsetX)px; top:@(HoverPin.Y - TooltipOffsetY)px; background-color:black; color:white; padding:4px 8px; border-radius:4px; pointer-events:none; white-space:nowrap;">
                         @HoverPin.Capability?.CapabilityName
                     </div>
+                    
                 }
             </RadzenCard>
         }
         <RadzenHeading Size="H4" Text="Capabilities" Style="margin-top: 1rem;" />
         <RadzenDataGrid TItem="Capability" Data="@assessment.Capabilities">
             <Columns>
-                <RadzenDataGridColumn TItem="Capability" Property="Control" Title="Control" />
-                <RadzenDataGridColumn TItem="Capability" Property="SubControlID" Title="SubControl ID" />
-                <RadzenDataGridColumn TItem="Capability" Property="CapabilityName" Title="Capability Name" />
-                <RadzenDataGridColumn TItem="Capability" Property="Checked" Title="Checked" />
-                <RadzenDataGridColumn TItem="Capability" Property="Evidence" Title="Evidence" />
+                <RadzenDataGridColumn TItem="Capability" Property="Control" Title="Control">
+                    <Template Context="capability">
+                        <div @onmouseover="() => SelectCapability(capability)" @onmouseout="ResetSelection" style="cursor: pointer;">
+                            @capability.Control
+                        </div>
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn TItem="Capability" Property="SubControlID" Title="SubControl ID">
+                    <Template Context="capability">
+                        <div @onmouseover="() => SelectCapability(capability)" @onmouseout="ResetSelection" style="cursor: pointer;">
+                            @capability.SubControlID
+                        </div>
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn TItem="Capability" Property="CapabilityName" Title="Capability Name">
+                    <Template Context="capability">
+                        <div @onmouseover="() => SelectCapability(capability)" @onmouseout="ResetSelection" style="cursor: pointer;">
+                            @capability.CapabilityName
+                        </div>
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn TItem="Capability" Property="Checked" Title="Checked">
+                    <Template Context="capability">
+                        <div @onmouseover="() => SelectCapability(capability)" @onmouseout="ResetSelection" style="cursor: pointer;">
+                            @capability.Checked
+                        </div>
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn TItem="Capability" Property="Evidence" Title="Evidence">
+                    <Template Context="capability">
+                        <div @onmouseover="() => SelectCapability(capability)" @onmouseout="ResetSelection" style="cursor: pointer;">
+                            @capability.Evidence
+                        </div>
+                    </Template>
+                </RadzenDataGridColumn>
             </Columns>
         </RadzenDataGrid>
         @if (assessment.Status != "Accepted" && assessment.Status != "Rejected" && UserService.Role != "Requester")
@@ -75,9 +119,11 @@
     private Assessment assessment;
     private string justification;
     private string errorMessage;
+    private string backgroundColor;
     private Pin HoverPin;
     private int TooltipOffsetX = 35;
     private int TooltipOffsetY = 20;
+    private Capability? selectedCapability;
     protected override async Task OnInitializedAsync()
     {
         assessment = await AssessmentService.GetAssessmentByIdAsync(Id);
@@ -106,6 +152,18 @@
         }
         await AssessmentService.ReviewAssessmentAsync(Id, UserService.Email, justification, false);
         NavigationManager.NavigateTo("/review", true);
+    }
+    
+    void SelectCapability(Capability capability)
+    {
+        selectedCapability = null;
+        selectedCapability = capability;
+        // StateHasChanged();
+    }
+    
+    void ResetSelection()
+    {
+        selectedCapability = null;
     }
 }
 
