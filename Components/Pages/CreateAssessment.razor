@@ -33,7 +33,7 @@
             ApplicationID = applicationID
         };
         await AssessmentService.CreateAssessmentAsync(assessment, assessmentType);
-        NavigationManager.NavigateTo("/assessments", true);
+        NavigationManager.NavigateTo($"/edit-assessment/{assessment.Id}", true);
     }
     
     private void BackToHome() => NavigationManager.NavigateTo("/", true);

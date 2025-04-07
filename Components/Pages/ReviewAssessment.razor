@@ -8,10 +8,11 @@
     <RadzenButton Text="Back" Click="BackToAssessmentList" ButtonStyle="ButtonStyle.Light" />
     @if (assessment != null)
     {
-        <RadzenHeading Size="H3" Text=@($"Assessment ID {assessment.Id.Substring(0, 3)} for Application {assessment.ApplicationID}") />
-        <div style="margin-top: 1rem;">
-            <RadzenLabel Text="Assessment Type:" />
-            <RadzenTextBox Value="@assessment.AssessmentType" ReadOnly="true" Style="width: 100%;" />
+        <RadzenHeading Size="H3" Text=@($"Assessment ID {assessment.Id.Substring(0, 3)} for Application {assessment.ApplicationID}")
+                       style="font-weight: bold; color: #FFFFFF; padding: 10px 20px; margin: 10px 0; text-align: center; background-color: #00436a;" />
+        <div style="margin-top: 1rem; padding: 10px; background-color: #f5f5f5; border-radius: 5px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+            <RadzenLabel Text="Assessment Type:" style="font-weight: bold; color: #333; margin-bottom: 5px;" />
+            <RadzenTextBox Value="@assessment.AssessmentType" ReadOnly="true" Style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background-color: #fff;" />
         </div>
         @if (!string.IsNullOrEmpty(assessment.SolutionDesignImagePath))
         {
@@ -21,11 +22,15 @@
                 {
                     @if ((HoverPin != null && HoverPin.CapabilityId == pin.CapabilityId) || (selectedCapability!= null && pin.Capability == selectedCapability))
                     {
-                        backgroundColor = "#d4c404";
+                        backgroundColor = "#FF0000";
                     }
                     else
                     {
                         backgroundColor = "#002337";
+                    }
+                    @if ((HoverPin != null && HoverPin.CapabilityId != pin.CapabilityId) || (selectedCapability != null && pin.Capability != selectedCapability))
+                    {
+                        backgroundColor = "#dcdcdc";
                     }
 
                     <div style="position: absolute; left:@(pin.X)px; top:@(pin.Y)px; width:@(pin.Width)px; height:@(pin.Height)px; background-color:@backgroundColor; border-radius:50%; cursor:default;"
