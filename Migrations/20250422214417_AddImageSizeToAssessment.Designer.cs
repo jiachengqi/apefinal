@@ -12,8 +12,8 @@ using apenew;
 namespace apenew.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250415224056_AddInitialCreate")]
-    partial class AddInitialCreate
+    [Migration("20250422214417_AddImageSizeToAssessment")]
+    partial class AddImageSizeToAssessment
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -44,6 +44,12 @@ namespace apenew.Migrations
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<double>("ImageHeight")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("ImageWidth")
+                        .HasColumnType("double precision");
 
                     b.Property<string>("Justification")
                         .HasColumnType("text");
@@ -86,9 +92,6 @@ namespace apenew.Migrations
                     b.Property<string>("AssessmentId")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<int?>("CapabilityId")
-                        .HasColumnType("integer");
 
                     b.Property<string>("CapabilityName")
                         .HasColumnType("text");

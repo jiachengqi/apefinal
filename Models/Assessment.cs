@@ -17,6 +17,9 @@ namespace apenew.Models
         public string ApplicationID { get; set; }
         public string? Justification { get; set; }
         public string? SolutionDesignImagePath { get; set; }
+        
+        public double ImageWidth  { get; set; } = 600;
+        public double ImageHeight { get; set; } = 400;
         public List<Pin> Pins { get; set; } = new List<Pin>();
         
         public List<Capability> Capabilities { get; set; } = new List<Capability>();

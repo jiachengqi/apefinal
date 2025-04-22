@@ -2,6 +2,7 @@
 @inject AssessmentService AssessmentService
 @inject UserService UserService
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JS
 @rendermode InteractiveServer
 
 <RadzenCard Style="max-width: 1400px; margin: 2rem auto; padding: 1rem;">
@@ -22,19 +23,29 @@
             <RadzenLabel Text="Upload Solution Design Evidence (JPG/PNG):" />
             <InputFile OnChange="HandleFileSelected" accept="image/jpeg,image/png" />
         </div>
-        @if (!string.IsNullOrEmpty(assessment.SolutionDesignImagePath))
+        @if (assessment?.SolutionDesignImagePath != null)
         {
-            <RadzenCard Style="position: relative; width:600px; height:400px; margin-top:1rem; border: 1px solid #ccc;">
-                <img src="@assessment.SolutionDesignImagePath" draggable="false" class="unselectable" style="width:600px; height:400px;" />
+            <div 
+                @ref="imageContainer" 
+                class="resizable-image-container" 
+                style="width:@(ImageWidth)px; height:@(ImageHeight)px;">
+                <img 
+                    src="@assessment.SolutionDesignImagePath" 
+                    class="resizable-image unselectable" 
+                    draggable="false" />
+
                 @foreach (var pin in assessment.Pins)
                 {
-                    <DraggablePin X="@pin.X" Y="@pin.Y" Width="20" Height="20" OnDragEnd="(coords) => UpdatePinPosition(pin, coords)">
-                        <div class="pin-normal" style="width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:bold;">
-                            @pin.DisplayNumber
-                        </div>
+                    <DraggablePin 
+                        X="@pin.X" 
+                        Y="@pin.Y" 
+                        Width="20" 
+                        Height="20" 
+                        OnDragEnd="(coords) => UpdatePinPosition(pin, coords)">
+                        <div class="pin-normal">@pin.DisplayNumber</div>
                     </DraggablePin>
                 }
-            </RadzenCard>
+            </div>
         }
         <RadzenHeading Size="H4" Text="Pins List" Style="margin-top: 1rem;" />
         <RadzenDataGrid TItem="GroupedPin" Data="@groupedPins" @ref="pinsGrid">
@@ -73,7 +84,6 @@
                                         <RadzenAccordionItem Text="@domainGroup.Domain" Icon="info">
                                             @foreach (var cap in domainGroup.Capabilities)
 {
-    // Determine if the capability should be rendered in a disabled (greyed-out) mode.
     bool disableCapability = cap.DanskeBankImplementation != null &&
         (cap.DanskeBankImplementation.Equals("No", StringComparison.OrdinalIgnoreCase) ||
          cap.DanskeBankImplementation.Equals("Not available", StringComparison.OrdinalIgnoreCase));
@@ -87,7 +97,6 @@
                 @cap.CapabilityName @(string.IsNullOrEmpty(cap.DanskeBankImplementation) ? string.Empty : $"({cap.DanskeBankImplementation})")
             </span>
             
-            @* Only show the toggle button if there is a SubcontrolDescription to show *@
             @if (!string.IsNullOrWhiteSpace(cap.SubcontrolDescription))
             {
                 <RadzenButton Icon="@(IsDescriptionVisible(cap.Id) ? "expand_less" : "expand_more")"
@@ -97,8 +106,7 @@
                               Style="margin-left: 10px;" />
             }
         </div>
-
-        @* Render the input controls only if not disabled *@
+        
         @if (!disableCapability)
         {
             <div style="display: flex; align-items: center; margin-top: 5px;">
@@ -153,11 +161,14 @@
     private RadzenDataGrid<GroupedPin> pinsGrid;
     private IEnumerable<GroupedPin> groupedPins;
     private List<GroupedCapabilitiesByField> groupedCapabilities;
-    private int currentTabIndex = 0; // Stores the current selected tab index
+    private int currentTabIndex = 0;
+    private double ImageWidth;
+    private double ImageHeight;
+    private ElementReference imageContainer;
+    private DotNetObjectReference<EditAssessment>? dotNetRef;
     
     private Dictionary<string, bool> showDescriptions = new Dictionary<string, bool>();
-
-    // Toggle the visibility for the given capability Id
+    
     private void ToggleDescription(string capId)
     {
         if (showDescriptions.ContainsKey(capId))
@@ -170,7 +181,6 @@
         }
     }
 
-    // Return true if the description for the given capability should be visible
     private bool IsDescriptionVisible(string capId)
     {
         return showDescriptions.ContainsKey(capId) && showDescriptions[capId];
@@ -182,9 +192,11 @@
         try
         {
             assessment = await AssessmentService.GetAssessmentByIdAsync(Id);
+            ImageWidth  = assessment.ImageWidth;
+            ImageHeight = assessment.ImageHeight;
             ReassignPinNumbers();
             GroupPinsByCapability();
-            GroupCapabilities(); // Group capabilities by Field then Domain
+            GroupCapabilities(); 
         }
         catch (Exception ex)
         {
@@ -196,6 +208,26 @@
         {
             Console.WriteLine($"Field: {fieldGroup.Field}, Domains Count: {fieldGroup.Domains.Count}");
         }
+    }
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (assessment?.SolutionDesignImagePath != null && dotNetRef == null)
+        {
+            dotNetRef = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("resizeHandler.init", imageContainer, dotNetRef);
+        }
+    }
+    
+    [JSInvokable]
+    public void OnResized(double width, double height)
+    {
+        ImageWidth  = width;
+        ImageHeight = height;
+
+        // update your in‑memory model so Save/Submit will persist it:
+        assessment.ImageWidth  = width;
+        assessment.ImageHeight = height;
     }
 
     private void GroupPinsByCapability()
@@ -212,7 +244,6 @@
 
     private void GroupCapabilities()
     {
-        // Group capabilities by Field and, within each Field, group by Domain
         groupedCapabilities = assessment.Capabilities
             .GroupBy(c => c.Field)
             .Select(fieldGroup => new GroupedCapabilitiesByField
@@ -285,6 +316,12 @@
     {
         try
         {
+            
+            var size = await JS.InvokeAsync<Size>("resizeHelper.getSize", imageContainer);
+
+            // 2) update our model
+            assessment.ImageWidth  = size.width;
+            assessment.ImageHeight = size.height;
             await AssessmentService.UpdateAssessmentAsync(assessment);
             errorMessage = "Saved successfully.";
         }
@@ -298,6 +335,10 @@
     {
         try
         {
+            var size = await JS.InvokeAsync<Size>("resizeHelper.getSize", imageContainer);
+            assessment.ImageWidth  = size.width;
+            assessment.ImageHeight = size.height;
+            await AssessmentService.UpdateAssessmentAsync(assessment);
             await AssessmentService.SubmitAssessmentAsync(assessment.Id, UserService.Email);
             NavigationManager.NavigateTo("/assessments", forceLoad: true);
         }
@@ -320,13 +361,12 @@
         }
     }
 
-    // Complete the OnChange method for RadzenTabs
+
     private void OnChange(int index)
     {
         currentTabIndex = index;
     }
-
-    // Helper classes used for grouping
+    
     private class GroupedPin
     {
         public string CapabilityName { get; set; }
@@ -344,6 +384,7 @@
         public string Domain { get; set; }
         public List<Capability> Capabilities { get; set; }
     }
+    public record Size(int width, int height);
 }
 <style>
     .pin-normal { background-color: #002337; }
@@ -382,4 +423,39 @@
         --rz-on-primary-lighter: #00436a;
         --rz-primary: #00436a;
     }
+
+    .resizable-image-container {
+        position: relative;
+        border: 1px solid #ccc;
+        overflow: hidden;   /* needed for native resize handle */
+        resize: both;     /* magic: allows drag‑to‑resize */
+
+        min-width: 200px;
+        min-height: 200px;
+    }
+
+    .resizable-image {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .pin-normal {
+        width:       20px;
+        height:      20px;
+        border-radius: 50%;
+        display:     flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #002337;
+        color:       white;
+        font-weight: bold;
+        user-select: none;
+    }
+
+    .unselectable {
+        user-select: none;
+    }
 </style>
+

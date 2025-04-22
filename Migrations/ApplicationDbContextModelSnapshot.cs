@@ -42,6 +42,12 @@ namespace apenew.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<double>("ImageHeight")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("ImageWidth")
+                        .HasColumnType("double precision");
+
                     b.Property<string>("Justification")
                         .HasColumnType("text");
 
@@ -83,9 +89,6 @@ namespace apenew.Migrations
                     b.Property<string>("AssessmentId")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<int?>("CapabilityId")
-                        .HasColumnType("integer");
 
                     b.Property<string>("CapabilityName")
                         .HasColumnType("text");
