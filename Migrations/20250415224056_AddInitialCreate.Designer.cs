@@ -12,8 +12,8 @@ using apenew;
 namespace apenew.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250305203612_MaketworeNullable")]
-    partial class MaketworeNullable
+    [Migration("20250415224056_AddInitialCreate")]
+    partial class AddInitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -54,7 +54,13 @@ namespace apenew.Migrations
                     b.Property<string>("ReviewedBy")
                         .HasColumnType("text");
 
-                    b.Property<string>("SolutionDesignEvidence")
+                    b.Property<string>("SolutionDesignImagePath")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("StartReviewAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("StartReviewBy")
                         .HasColumnType("text");
 
                     b.Property<string>("Status")
@@ -81,23 +87,37 @@ namespace apenew.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int?>("CapabilityId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("CapabilityName")
-                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<bool>("Checked")
-                        .HasColumnType("boolean");
+                    b.Property<string>("Checked")
+                        .HasColumnType("text");
 
                     b.Property<string>("Control")
-                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("DanskeBankImplementation")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Domain")
                         .HasColumnType("text");
 
                     b.Property<string>("Evidence")
-                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Field")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Scope")
                         .HasColumnType("text");
 
                     b.Property<string>("SubControlID")
-                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("SubcontrolDescription")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
@@ -105,6 +125,43 @@ namespace apenew.Migrations
                     b.HasIndex("AssessmentId");
 
                     b.ToTable("Capabilities");
+                });
+
+            modelBuilder.Entity("apenew.Models.Pin", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<string>("AssessmentId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CapabilityId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("DisplayNumber")
+                        .HasColumnType("integer");
+
+                    b.Property<double>("Height")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("Width")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("X")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("Y")
+                        .HasColumnType("double precision");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssessmentId");
+
+                    b.HasIndex("CapabilityId");
+
+                    b.ToTable("Pins");
                 });
 
             modelBuilder.Entity("apenew.Models.Capability", b =>
@@ -118,9 +175,30 @@ namespace apenew.Migrations
                     b.Navigation("Assessment");
                 });
 
+            modelBuilder.Entity("apenew.Models.Pin", b =>
+                {
+                    b.HasOne("apenew.Models.Assessment", "Assessment")
+                        .WithMany("Pins")
+                        .HasForeignKey("AssessmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("apenew.Models.Capability", "Capability")
+                        .WithMany()
+                        .HasForeignKey("CapabilityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Assessment");
+
+                    b.Navigation("Capability");
+                });
+
             modelBuilder.Entity("apenew.Models.Assessment", b =>
                 {
                     b.Navigation("Capabilities");
+
+                    b.Navigation("Pins");
                 });
 #pragma warning restore 612, 618
         }
