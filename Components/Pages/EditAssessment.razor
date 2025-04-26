@@ -165,7 +165,6 @@
     private double ImageWidth;
     private double ImageHeight;
     private ElementReference imageContainer;
-    private DotNetObjectReference<EditAssessment>? dotNetRef;
     
     private Dictionary<string, bool> showDescriptions = new Dictionary<string, bool>();
     
@@ -208,26 +207,6 @@
         {
             Console.WriteLine($"Field: {fieldGroup.Field}, Domains Count: {fieldGroup.Domains.Count}");
         }
-    }
-    
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (assessment?.SolutionDesignImagePath != null && dotNetRef == null)
-        {
-            dotNetRef = DotNetObjectReference.Create(this);
-            await JS.InvokeVoidAsync("resizeHandler.init", imageContainer, dotNetRef);
-        }
-    }
-    
-    [JSInvokable]
-    public void OnResized(double width, double height)
-    {
-        ImageWidth  = width;
-        ImageHeight = height;
-
-        // update your in‑memory model so Save/Submit will persist it:
-        assessment.ImageWidth  = width;
-        assessment.ImageHeight = height;
     }
 
     private void GroupPinsByCapability()

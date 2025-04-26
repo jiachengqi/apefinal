@@ -48,12 +48,19 @@
             </RadzenCard>
         }
         <RadzenHeading Size="H4" Text="Capabilities" Style="margin-top: 1rem;" />
+
+
+
+
+
         <RadzenDataGrid TItem="Capability" Data="@assessment.Capabilities">
             <Columns>
                 <RadzenDataGridColumn TItem="Capability" Property="Control" Title="Control">
                     <Template Context="capability">
                         <div @onmouseover="() => SelectCapability(capability)" @onmouseout="ResetSelection" style="cursor: pointer;">
-                            @capability.Control
+                    <span style="@(capability == HoverPin?.Capability || capability == selectedCapability ? "color: #FF0000;" : "")">
+                        @capability.Control
+                    </span>
                         </div>
                     </Template>
                 </RadzenDataGridColumn>
@@ -61,7 +68,9 @@
                 <RadzenDataGridColumn TItem="Capability" Property="SubControlID" Title="SubControl ID">
                     <Template Context="capability">
                         <div @onmouseover="() => SelectCapability(capability)" @onmouseout="ResetSelection" style="cursor: pointer;">
-                            @capability.SubControlID
+                    <span style="@(capability == HoverPin?.Capability || capability == selectedCapability ? "color: #FF0000;" : "")">
+                        @capability.SubControlID
+                    </span>
                         </div>
                     </Template>
                 </RadzenDataGridColumn>
@@ -69,7 +78,9 @@
                 <RadzenDataGridColumn TItem="Capability" Property="CapabilityName" Title="Capability Name">
                     <Template Context="capability">
                         <div @onmouseover="() => SelectCapability(capability)" @onmouseout="ResetSelection" style="cursor: pointer;">
-                            @capability.CapabilityName
+                    <span style="@(capability == HoverPin?.Capability || capability == selectedCapability ? "color: #FF0000;" : "")">
+                        @capability.CapabilityName
+                    </span>
                         </div>
                     </Template>
                 </RadzenDataGridColumn>
@@ -77,7 +88,9 @@
                 <RadzenDataGridColumn TItem="Capability" Property="Checked" Title="Checked">
                     <Template Context="capability">
                         <div @onmouseover="() => SelectCapability(capability)" @onmouseout="ResetSelection" style="cursor: pointer;">
-                            @capability.Checked
+                    <span style="@(capability == HoverPin?.Capability || capability == selectedCapability ? "color: #FF0000;" : "")">
+                        @capability.Checked
+                    </span>
                         </div>
                     </Template>
                 </RadzenDataGridColumn>
@@ -85,7 +98,9 @@
                 <RadzenDataGridColumn TItem="Capability" Property="Evidence" Title="Evidence">
                     <Template Context="capability">
                         <div @onmouseover="() => SelectCapability(capability)" @onmouseout="ResetSelection" style="cursor: pointer;">
-                            @capability.Evidence
+                    <span style="@(capability == HoverPin?.Capability || capability == selectedCapability ? "color: #FF0000;" : "")">
+                        @capability.Evidence
+                    </span>
                         </div>
                     </Template>
                 </RadzenDataGridColumn>
