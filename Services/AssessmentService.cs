@@ -66,6 +66,10 @@ namespace apenew.Services
                 });
             }
             await _context.SaveChangesAsync();
+            
+            CapabilityLoader.PredefinedCapabilities.ProductCapabilities.Clear();
+            CapabilityLoader.PredefinedCapabilities.PlatformCapabilities.Clear();
+            
         }
 
         public async Task UpdateAssessmentAsync(Assessment assessment)
@@ -236,6 +240,18 @@ namespace apenew.Services
                     { "Domain", "Application Development Security" },
                     { "Capability", "Threat Modeling" },
                     { "DanskeBankImplementation", "Not available" },
+                    { "Scope", "Product" }
+                },
+                new Dictionary<string, string>
+                {
+                    { "Control", "SD2.1.2" },
+                    { "SubcontrolId", "SD2.1.1.3" },
+                    { "SubcontrolDescription", "Security nted in system specifications." },
+                    { "Type", "Process" },
+                    { "Field", "Strategy & Vision" },
+                    { "Domain", "Application Development Security" },
+                    { "Capability", "Business Continuity & Asset Management*" },
+                    { "DanskeBankImplementation", "" },
                     { "Scope", "Product" }
                 },
                 // // Row 11

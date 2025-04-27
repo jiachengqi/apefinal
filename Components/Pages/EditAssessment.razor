@@ -1,4 +1,5 @@
 ﻿@page "/edit-assessment/{Id}"
+@using apenew.Helper
 @inject AssessmentService AssessmentService
 @inject UserService UserService
 @inject NavigationManager NavigationManager
@@ -6,150 +7,156 @@
 @rendermode InteractiveServer
 
 <RadzenCard Style="max-width: 1400px; margin: 2rem auto; padding: 1rem;">
-    <RadzenButton Text="Back" Click="BackToAssessmentList" ButtonStyle="ButtonStyle.Light" />
+    <RadzenButton Text="Back" Click="BackToAssessmentList" ButtonStyle="ButtonStyle.Light"/>
     @if (assessment == null)
     {
         <p>Loading...</p>
     }
     else
     {
-        <RadzenHeading Size="H3" Text=@($"Assessment ID {assessment.Id.Substring(0, 3)} for Application {assessment.ApplicationID}")
-                       style="font-weight: bold; color: #FFFFFF; padding: 10px 20px; margin: 10px 0; text-align: center; background-color: #00436a;" />
-        <div style="margin-top: 1rem; padding: 10px; background-color: #f5f5f5; border-radius: 5px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-            <RadzenLabel Text="Assessment Type:" style="font-weight: bold; color: #333; margin-bottom: 5px;" />
-            <RadzenTextBox Value="@assessment.AssessmentType" ReadOnly="true" Style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background-color: #fff;" />
+        <RadzenHeading Size="H3"
+                       Text=@($"Assessment ID {assessment.Id.Substring(0, 3)} for Application {assessment.ApplicationID}")
+                       style="font-weight: bold; color: #FFFFFF; padding: 10px 20px; margin: 10px 0; text-align: center; background-color: #00436a;"/>
+        <div
+            style="margin-top: 1rem; padding: 10px; background-color: #f5f5f5; border-radius: 5px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
+            <RadzenLabel Text="Assessment Type:" style="font-weight: bold; color: #333; margin-bottom: 5px;"/>
+            <RadzenTextBox Value="@assessment.AssessmentType" ReadOnly="true"
+                           Style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background-color: #fff;"/>
         </div>
         <div style="margin-top: 1rem;">
-            <RadzenLabel Text="Upload Solution Design Evidence (JPG/PNG):" />
-            <InputFile OnChange="HandleFileSelected" accept="image/jpeg,image/png" />
+            <RadzenLabel Text="Upload Solution Design Evidence (JPG/PNG):"/>
+            <InputFile OnChange="HandleFileSelected" accept="image/jpeg,image/png"/>
         </div>
         @if (assessment?.SolutionDesignImagePath != null)
         {
-            <div 
-                @ref="imageContainer" 
-                class="resizable-image-container" 
+            <div
+                @ref="imageContainer"
+                class="resizable-image-container"
                 style="width:@(ImageWidth)px; height:@(ImageHeight)px;">
-                <img 
-                    src="@assessment.SolutionDesignImagePath" 
-                    class="resizable-image unselectable" 
-                    draggable="false" />
+                <img
+                    src="@assessment.SolutionDesignImagePath"
+                    class="resizable-image unselectable"
+                    draggable="false"/>
 
                 @foreach (var pin in assessment.Pins)
                 {
-                    <DraggablePin 
-                        X="@pin.X" 
-                        Y="@pin.Y" 
-                        Width="20" 
-                        Height="20" 
+                    <DraggablePin
+                        X="@pin.X"
+                        Y="@pin.Y"
+                        Width="20"
+                        Height="20"
                         OnDragEnd="(coords) => UpdatePinPosition(pin, coords)">
                         <div class="pin-normal">@pin.DisplayNumber</div>
                     </DraggablePin>
                 }
             </div>
         }
-        <RadzenHeading Size="H4" Text="Pins List" Style="margin-top: 1rem;" />
+
+        <RadzenHeading Size="H4" Text="Pins List" Style="margin-top: 1rem;"/>
         <RadzenDataGrid TItem="GroupedPin" Data="@groupedPins" @ref="pinsGrid">
             <Columns>
-                <RadzenDataGridColumn TItem="GroupedPin" Property="CapabilityName" Title="Capability Name" />
+                <RadzenDataGridColumn TItem="GroupedPin" Property="CapabilityName" Title="Capability Name"/>
                 <RadzenDataGridColumn TItem="GroupedPin" Title="Pins">
                     <Template Context="group">
                         @foreach (var pin in group.Pins)
                         {
                             <div>
                                 Pin #: @pin.DisplayNumber
-                                <RadzenButton Text="Remove" Click="@(async args => await RemovePin(pin))" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" />
+                                <RadzenButton Text="Remove" Click="@(async args => await RemovePin(pin))"
+                                              ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small"/>
                             </div>
                         }
                     </Template>
                 </RadzenDataGridColumn>
             </Columns>
         </RadzenDataGrid>
-        
-        <RadzenHeading Size="H4" Text="Capabilities" Style="margin-top: 1rem;" />
+
+        <RadzenHeading Size="H4" Text="Capabilities" Style="margin-top: 1rem;"/>
         @if (groupedCapabilities == null)
         {
             <p>Loading capabilities...</p>
         }
         else
         {
-            <RadzenTabs Change="@OnChange" TabPosition="TabPosition.Top" RenderMode="TabRenderMode.Client">
-                <Tabs>
-                    @foreach (var fieldGroup in groupedCapabilities)
-                    {
-                        <RadzenTabsItem Text="@fieldGroup.Field">
-                            <RadzenAccordion Multiple="true">
-                                <Items>
-                                    @foreach (var domainGroup in fieldGroup.Domains)
-                                    {
-                                        <RadzenAccordionItem Text="@domainGroup.Domain" Icon="info">
-                                            @foreach (var cap in domainGroup.Capabilities)
-{
-    bool disableCapability = cap.DanskeBankImplementation != null &&
-        (cap.DanskeBankImplementation.Equals("No", StringComparison.OrdinalIgnoreCase) ||
-         cap.DanskeBankImplementation.Equals("Not available", StringComparison.OrdinalIgnoreCase));
-
-    <div style="margin-bottom:10px; padding:5px; border-bottom:1px solid #ddd; @(disableCapability ? "background-color: #d3d3d3;" : "")">
-        <div style="display: flex; align-items: center;">
-            <strong>
-                @cap.Control - @cap.SubControlID:
-            </strong>
-            <span style="margin-left: 5px;">
-                @cap.CapabilityName @(string.IsNullOrEmpty(cap.DanskeBankImplementation) ? string.Empty : $"({cap.DanskeBankImplementation})")
-            </span>
-            
-            @if (!string.IsNullOrWhiteSpace(cap.SubcontrolDescription))
+            <RadzenTabs Change="@OnChange"
+            TabPosition="TabPosition.Top"
+            RenderMode="TabRenderMode.Client">
+  <Tabs>
+    @foreach (var fieldGroup in groupedCapabilities)
+    {
+      <RadzenTabsItem Text="@fieldGroup.Field">
+        <RadzenAccordion Multiple="true">
+          <Items>
+            @foreach (var capGroup in fieldGroup.Capabilities)
             {
-                <RadzenButton Icon="@(IsDescriptionVisible(cap.Id) ? "expand_less" : "expand_more")"
-                              ButtonStyle="ButtonStyle.Secondary"
-                              Size="ButtonSize.Small"
-                              Click="@(args => ToggleDescription(cap.Id))"
-                              Style="margin-left: 10px;" />
+                <RadzenAccordionItem Text="@capGroup.CapabilityName">
+                    <div class="d-flex align-items-center mb-2">
+                        <!-- Left group stretches to fill, minus the Show Details button -->
+                        <div class="d-flex align-items-center" style="flex: 1; margin-right: 1rem;">
+                            <RadzenDropDown
+                                @bind-Value="capGroup.Items.First().Checked"
+                                Data="@(new[]{ "", "fulfilled", "unfulfilled" })"
+                                Placeholder="Fulfillment"
+                                Style="flex: 0.1; margin-right: 1rem;" />
+
+                            <RadzenTextBox
+                                @bind-Value="capGroup.Items.First().Evidence"
+                                Placeholder="Evidence"
+                                Style="flex: 0.9;" />
+
+                            <RadzenButton
+                                Text="Add Pin"
+                                Click="@(async () => await AddPinForCapability(capGroup.Items.First()))"
+                                ButtonStyle="ButtonStyle.Primary"
+                                Size="ButtonSize.Small"
+                                Style="margin-left: 1rem; flex-shrink: 0;" />
+                        </div>
+
+                        <!-- Show/Hide details button stays on the right -->
+                        <RadzenButton
+                            Text="@(IsGroupDescriptionVisible(capGroup.CapabilityName) ? "Hide Details" : "Show Details")"
+                            ButtonStyle="ButtonStyle.Secondary"
+                            Size="ButtonSize.Small"
+                            Click="() => ToggleGroupDescription(capGroup.CapabilityName)"
+                            Style="flex-shrink: 0;" />
+                    </div>
+
+
+                    <ul class="list-unstyled p-0">
+                        @foreach (var sub in capGroup.Items)
+                        {
+                            <li>
+                                @* <div><strong>@sub.SubControlID</strong></div> *@
+                                @if (IsGroupDescriptionVisible(capGroup.CapabilityName))
+                                {
+                                    <div class="mt-2 p-2 bg-light rounded">
+                                        @sub.SubcontrolDescription
+                                    </div>
+                                }
+                            </li>
+                        }
+                    </ul>
+                </RadzenAccordionItem>
             }
-        </div>
-        
-        @if (!disableCapability)
-        {
-            <div style="display: flex; align-items: center; margin-top: 5px;">
-                <RadzenDropDown @bind-Value="cap.Checked"
-                                Data="@(new List<string>{ "", "fulfilled", "unfulfilled" })"
-                                Style="width: 100px; flex-shrink: 0;" />
-                <RadzenTextBox @bind-Value="cap.Evidence"
-                               Style="flex-grow: 1; margin-left: 10px;" />
-                <RadzenButton Text="Add Pin"
-                              Click="@(async args => await AddPinForCapability(cap))"
-                              ButtonStyle="ButtonStyle.Primary"
-                              Size="ButtonSize.Small"
-                              Style="margin-left: 10px;" />
-            </div>
-        }
+          </Items>
+        </RadzenAccordion>
+      </RadzenTabsItem>
+    }
+  </Tabs>
+</RadzenTabs>
 
-        @* Render the SubcontrolDescription details if toggled visible *@
-        @if (IsDescriptionVisible(cap.Id))
-        {
-            <div style="margin-top: 5px; background-color: #f0f0f0; padding: 5px; border-radius: 5px;">
-                @cap.SubcontrolDescription
-            </div>
-        }
-    </div>
-}
 
-                                        </RadzenAccordionItem>
-                                    }
-                                </Items>
-                            </RadzenAccordion>
-                        </RadzenTabsItem>
-                    }
-                </Tabs>
-            </RadzenTabs>
-        }
+
+            }
 
         <div style="margin-top: 1rem;">
-            <RadzenButton Text="Save" Click="SaveAssessment" ButtonStyle="ButtonStyle.Primary" Style="margin-right: 10px;" />
-            <RadzenButton Text="Submit" Click="SubmitAssessment" ButtonStyle="ButtonStyle.Success" />
+            <RadzenButton Text="Save" Click="SaveAssessment" ButtonStyle="ButtonStyle.Primary"
+                          Style="margin-right: 10px;"/>
+            <RadzenButton Text="Submit" Click="SubmitAssessment" ButtonStyle="ButtonStyle.Success"/>
         </div>
         @if (!string.IsNullOrEmpty(errorMessage))
         {
-            <RadzenAlert Severity="AlertSeverity.Error" Text="@errorMessage" Style="margin-top:1rem;" />
+            <RadzenAlert Severity="AlertSeverity.Error" Text="@errorMessage" Style="margin-top:1rem;"/>
         }
     }
 </RadzenCard>
@@ -160,14 +167,41 @@
     private string errorMessage;
     private RadzenDataGrid<GroupedPin> pinsGrid;
     private IEnumerable<GroupedPin> groupedPins;
-    private List<GroupedCapabilitiesByField> groupedCapabilities;
+    private List<GroupedCapabilitiesByFieldName> groupedCapabilities;
     private int currentTabIndex = 0;
     private double ImageWidth;
     private double ImageHeight;
     private ElementReference imageContainer;
-    
+
     private Dictionary<string, bool> showDescriptions = new Dictionary<string, bool>();
     
+    private Dictionary<string,bool> showGroupDescriptions = new();
+
+    private void ToggleGroupDescription(string capabilityName)
+    {
+        if (!showGroupDescriptions.TryGetValue(capabilityName, out var visible))
+            visible = false;
+        showGroupDescriptions[capabilityName] = !visible;
+    }
+
+    private bool IsGroupDescriptionVisible(string capabilityName)
+        => showGroupDescriptions.TryGetValue(capabilityName, out var visible) && visible;
+
+    private class CapabilityGroupVm
+    {
+        public string Field { get; set; }
+        public string CapabilityName { get; set; }
+
+        // these two drive the single UI inputs:
+        public string Checked { get; set; }
+        public string Evidence { get; set; }
+
+        // the actual EF entities to update later:
+        public List<Capability> BackingItems { get; set; }
+    }
+
+    private List<CapabilityGroupVm> vmGroups;
+
     private void ToggleDescription(string capId)
     {
         if (showDescriptions.ContainsKey(capId))
@@ -191,22 +225,64 @@
         try
         {
             assessment = await AssessmentService.GetAssessmentByIdAsync(Id);
-            ImageWidth  = assessment.ImageWidth;
+            ImageWidth = assessment.ImageWidth;
             ImageHeight = assessment.ImageHeight;
             ReassignPinNumbers();
             GroupPinsByCapability();
-            GroupCapabilities(); 
+            GroupCapabilitiesByFieldName();
+
+            vmGroups = assessment.Capabilities
+                .GroupBy(c => c.Field)
+                .SelectMany(fieldG =>
+                    fieldG
+                        .GroupBy(c => c.CapabilityName)
+                        .Select(capG => new CapabilityGroupVm
+                        {
+                            Field = fieldG.Key,
+                            CapabilityName = capG.Key,
+                            BackingItems = capG.ToList(),
+                            // initialize from the first
+                            Checked = capG.First().Checked,
+                            Evidence = capG.First().Evidence
+                        })
+                )
+                .ToList();
         }
         catch (Exception ex)
         {
             errorMessage = $"Error loading assessment: {ex.Message}";
         }
-        
-        Console.WriteLine($"Number of Fields: {groupedCapabilities.Count}");
-        foreach (var fieldGroup in groupedCapabilities)
-        {
-            Console.WriteLine($"Field: {fieldGroup.Field}, Domains Count: {fieldGroup.Domains.Count}");
-        }
+    }
+
+    private void GroupCapabilitiesByFieldName()
+    {
+        groupedCapabilities = assessment.Capabilities
+            .GroupBy(c => c.Field)
+            .Select(fieldGroup => new GroupedCapabilitiesByFieldName
+            {
+                Field = fieldGroup.Key,
+                Capabilities = fieldGroup
+                    .GroupBy(c => c.CapabilityName)
+                    .Select(capGroup => new GroupedCapabilitiesByName
+                    {
+                        CapabilityName = capGroup.Key,
+                        Items = capGroup.ToList()
+                    })
+                    .ToList()
+            })
+            .ToList();
+    }
+
+    private class GroupedCapabilitiesByFieldName
+    {
+        public string Field { get; set; }
+        public List<GroupedCapabilitiesByName> Capabilities { get; set; }
+    }
+
+    private class GroupedCapabilitiesByName
+    {
+        public string CapabilityName { get; set; }
+        public List<Capability> Items { get; set; }
     }
 
     private void GroupPinsByCapability()
@@ -220,22 +296,22 @@
             })
             .ToList();
     }
-
-    private void GroupCapabilities()
-    {
-        groupedCapabilities = assessment.Capabilities
-            .GroupBy(c => c.Field)
-            .Select(fieldGroup => new GroupedCapabilitiesByField
-            {
-                Field = fieldGroup.Key,
-                Domains = fieldGroup.GroupBy(c => c.Domain)
-                    .Select(domainGroup => new GroupedCapabilitiesByDomain
-                    {
-                        Domain = domainGroup.Key,
-                        Capabilities = domainGroup.ToList()
-                    }).ToList()
-            }).ToList();
-    }
+    //
+    // private void GroupCapabilities()
+    // {
+    //     groupedCapabilities = assessment.Capabilities
+    //         .GroupBy(c => c.Field)
+    //         .Select(fieldGroup => new GroupedCapabilitiesByField
+    //         {
+    //             Field = fieldGroup.Key,
+    //             Domains = fieldGroup.GroupBy(c => c.Domain)
+    //                 .Select(domainGroup => new GroupedCapabilitiesByDomain
+    //                 {
+    //                     Domain = domainGroup.Key,
+    //                     Capabilities = domainGroup.ToList()
+    //                 }).ToList()
+    //         }).ToList();
+    // }
 
     private async Task HandleFileSelected(InputFileChangeEventArgs e)
     {
@@ -295,12 +371,19 @@
     {
         try
         {
-            
             var size = await JS.InvokeAsync<Size>("resizeHelper.getSize", imageContainer);
 
             // 2) update our model
-            assessment.ImageWidth  = size.width;
+            assessment.ImageWidth = size.width;
             assessment.ImageHeight = size.height;
+            foreach(var g in vmGroups)
+            {
+                foreach(var cap in g.BackingItems)
+                {
+                    cap.Checked  = g.Checked;
+                    cap.Evidence = g.Evidence;
+                }
+            }
             await AssessmentService.UpdateAssessmentAsync(assessment);
             errorMessage = "Saved successfully.";
         }
@@ -315,8 +398,16 @@
         try
         {
             var size = await JS.InvokeAsync<Size>("resizeHelper.getSize", imageContainer);
-            assessment.ImageWidth  = size.width;
+            assessment.ImageWidth = size.width;
             assessment.ImageHeight = size.height;
+            foreach(var g in vmGroups)
+            {
+                foreach(var cap in g.BackingItems)
+                {
+                    cap.Checked  = g.Checked;
+                    cap.Evidence = g.Evidence;
+                }
+            }
             await AssessmentService.UpdateAssessmentAsync(assessment);
             await AssessmentService.SubmitAssessmentAsync(assessment.Id, UserService.Email);
             NavigationManager.NavigateTo("/assessments", forceLoad: true);
@@ -345,7 +436,7 @@
     {
         currentTabIndex = index;
     }
-    
+
     private class GroupedPin
     {
         public string CapabilityName { get; set; }
@@ -363,33 +454,50 @@
         public string Domain { get; set; }
         public List<Capability> Capabilities { get; set; }
     }
+
     public record Size(int width, int height);
+
 }
+
 <style>
-    .pin-normal { background-color: #002337; }
-    .unselectable { user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; -o-user-select: none; }
+    .pin-normal {
+        background-color: #002337;
+    }
+
+    .unselectable {
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        -o-user-select: none;
+    }
+
     .rz-button.rz-primary.rz-shade-default {
         background-color: #00436a;
     }
+
     .rz-button.rz-success.rz-shade-default {
         background-color: #006db9;
     }
 
     .rz-button.rz-secondary.rz-shade-default {
-    background-color: #00436a;
+        background-color: #00436a;
     }
-    
+
     .rz-button.rz-success {
         background-color: #006db9;
     }
+
     .rz-button.rz-danger.rz-shade-default {
         background-color: #f0f7fa;
         color: black;
     }
+
     .rz-button.rz-danger {
         background-color: #f0f7fa;
         color: black;
     }
+
     .rz-tabview-title {
         color: #00436a;
     }
@@ -406,8 +514,8 @@
     .resizable-image-container {
         position: relative;
         border: 1px solid #ccc;
-        overflow: hidden;   /* needed for native resize handle */
-        resize: both;     /* magic: allows drag‑to‑resize */
+        overflow: hidden; /* needed for native resize handle */
+        resize: both; /* magic: allows drag‑to‑resize */
 
         min-width: 200px;
         min-height: 200px;
@@ -421,14 +529,14 @@
     }
 
     .pin-normal {
-        width:       20px;
-        height:      20px;
+        width: 20px;
+        height: 20px;
         border-radius: 50%;
-        display:     flex;
+        display: flex;
         align-items: center;
         justify-content: center;
         background-color: #002337;
-        color:       white;
+        color: white;
         font-weight: bold;
         user-select: none;
     }
