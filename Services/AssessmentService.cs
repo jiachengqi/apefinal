@@ -66,6 +66,10 @@ namespace apenew.Services
                 });
             }
             await _context.SaveChangesAsync();
+            
+            CapabilityLoader.PredefinedCapabilities.ProductCapabilities.Clear();
+            CapabilityLoader.PredefinedCapabilities.PlatformCapabilities.Clear();
+
         }
 
         public async Task UpdateAssessmentAsync(Assessment assessment)
@@ -109,18 +113,18 @@ namespace apenew.Services
         List<Dictionary<string, string>> capabilityData = new List<Dictionary<string, string>>
             {
                 // Row 1
-                new Dictionary<string, string>
-                {
-                    { "Control", "IR1.2" },
-                    { "SubcontrolId", "IR1.2.1" },
-                    { "SubcontrolDescription", "Define a repeatable risk assessment methodology." },
-                    { "Type", "Process" },
-                    { "Field", "Strategy & Vision" },
-                    { "Domain", "Risk Management" },
-                    { "Capability", "Threat Modeling" },
-                    { "DanskeBankImplementation", "No" },
-                    { "Scope", "Product" }
-                },
+                // new Dictionary<string, string>
+                // {
+                //     { "Control", "IR1.2" },
+                //     { "SubcontrolId", "IR1.2.1" },
+                //     { "SubcontrolDescription", "Define a repeatable risk assessment methodology." },
+                //     { "Type", "Process" },
+                //     { "Field", "Security Operations" },
+                //     { "Domain", "Risk Management" },
+                //     { "Capability", "Threat Modeling" },
+                //     { "DanskeBankImplementation", "" },
+                //     { "Scope", "Product" }
+                // },
                 // Row 2
                 new Dictionary<string, string>
                 {
@@ -128,10 +132,10 @@ namespace apenew.Services
                     { "SubcontrolId", "IR1.2.2" },
                     { "SubcontrolDescription", "Align risk assessments with regulatory and compliance requirements." },
                     { "Type", "Process" },
-                    { "Field", "Strategy & Vision" },
+                    { "Field", "Governance & Compliance" },
                     { "Domain", "Risk Management" },
                     { "Capability", "Automated Compliance" },
-                    { "DanskeBankImplementation", "No" },
+                    { "DanskeBankImplementation", "" },
                     { "Scope", "Both" }
                 },
                 // Row 3
@@ -141,10 +145,10 @@ namespace apenew.Services
                     { "SubcontrolId", "IR2.2.1" },
                     { "SubcontrolDescription", "Identify business-critical assets and processes requiring protection." },
                     { "Type", "Process" },
-                    { "Field", "Strategy & Vision" },
+                    { "Field", "Code Security" },
                     { "Domain", "Risk Management" },
-                    { "Capability", "Business Continuity & Asset Management*" },
-                    { "DanskeBankImplementation", "Business Criticality recorded via APE" },
+                    { "Capability", "Input Validation" },
+                    { "DanskeBankImplementation", "" },
                     { "Scope", "Product" }
                 },
                 // Row 4
@@ -154,10 +158,10 @@ namespace apenew.Services
                     { "SubcontrolId", "IR2.4.1" },
                     { "SubcontrolDescription", "Implement logging and monitoring to detect data alterations." },
                     { "Type", "Process" },
-                    { "Field", "Operational Security" },
+                    { "Field", "Security Operations" },
                     { "Domain", "Defensive Ops" },
-                    { "Capability", "SIEM & Logging" },
-                    { "DanskeBankImplementation", "Application-level monitoring, logging for data alteration" },
+                    { "Capability", "SIEM" },
+                    { "DanskeBankImplementation", "" },
                     { "Scope", "Product" }
                 },
                 // Row 5
@@ -167,10 +171,10 @@ namespace apenew.Services
                     { "SubcontrolId", "SD1.1.2" },
                     { "SubcontrolDescription", "Security requirements should be defined and documented for all new system developments." },
                     { "Type", "Process" },
-                    { "Field", "Design & Engineering" },
+                    { "Field", "Security Operations" },
                     { "Domain", "Application Development Security" },
-                    { "Capability", "Assessment Process Engine" },
-                    { "DanskeBankImplementation", "Self-evidenced by CSA" },
+                    { "Capability", "Pen Testing" },
+                    { "DanskeBankImplementation", "" },
                     { "Scope", "Both" }
                 },
                 // Row 6
@@ -183,7 +187,7 @@ namespace apenew.Services
                     { "Field", "Design & Engineering" },
                     { "Domain", "Secure Infrastructure Integrations" },
                     { "Capability", "Environment Segmentation" },
-                    { "DanskeBankImplementation", "Cloud Account demarcates the segregation" },
+                    { "DanskeBankImplementation", "" },
                     { "Scope", "Both" }
                 },
                 // Row 7
@@ -193,10 +197,10 @@ namespace apenew.Services
                     { "SubcontrolId", "SD1.2.2" },
                     { "SubcontrolDescription", "Access to development systems should be restricted based on job roles." },
                     { "Type", "Technology" },
-                    { "Field", "Design & Engineering" },
-                    { "Domain", "Identity & Access Management" },
+                    { "Field", "Identity & Access Management" },
+                    { "Domain", "Identity &  Access Management" },
                     { "Capability", "IAM - RBAC" },
-                    { "DanskeBankImplementation", "Show the Accounts and FT Access Controls" },
+                    { "DanskeBankImplementation", "" },
                     { "Scope", "Both" }
                 },
                 // Row 8
@@ -206,10 +210,10 @@ namespace apenew.Services
                     { "SubcontrolId", "SD1.3.1" },
                     { "SubcontrolDescription", "Conduct regular security reviews as part of software testing processes." },
                     { "Type", "Process" },
-                    { "Field", "Design & Engineering" },
+                    { "Field", "Code Security" },
                     { "Domain", "Application Development Security" },
                     { "Capability", "4-eyes principle" },
-                    { "DanskeBankImplementation", "CI/CD segregation of duties for PR approvals" },
+                    { "DanskeBankImplementation", "" },
                     { "Scope", "Product" }
                 },
                 // Row 9
@@ -219,10 +223,10 @@ namespace apenew.Services
                     { "SubcontrolId", "SD1.3.2" },
                     { "SubcontrolDescription", "Use automated security testing tools in development and testing phases." },
                     { "Type", "Technology" },
-                    { "Field", "Design & Engineering" },
-                    { "Domain", "Application Development Security" },
-                    { "Capability", "SAST & DAST" },
-                    { "DanskeBankImplementation", "SAST = Blackduck, DAST = Not Available" },
+                    { "Field", "Code Security" },
+                    { "Domain", "Application Developmdent Security" },
+                    { "Capability", "SAST" },
+                    { "DanskeBankImplementation", "" },
                     { "Scope", "Product" }
                 },
                 // Row 10
@@ -232,10 +236,10 @@ namespace apenew.Services
                     { "SubcontrolId", "SD2.1.1" },
                     { "SubcontrolDescription", "Security requirements should be formally documented in system specifications." },
                     { "Type", "Process" },
-                    { "Field", "Design & Engineering" },
+                    { "Field", "Security Operations" },
                     { "Domain", "Application Development Security" },
-                    { "Capability", "Threat Modeling" },
-                    { "DanskeBankImplementation", "Not available" },
+                    { "Capability", "Logging & Monitoring" },
+                    { "DanskeBankImplementation", "" },
                     { "Scope", "Product" }
                 },
                 // // Row 11

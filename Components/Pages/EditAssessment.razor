@@ -77,66 +77,65 @@
                     @foreach (var fieldGroup in groupedCapabilities)
                     {
                         <RadzenTabsItem Text="@fieldGroup.Field">
-                            <RadzenAccordion Multiple="true">
-                                <Items>
-                                    @foreach (var domainGroup in fieldGroup.Domains)
+                            @foreach (var cap in fieldGroup.Capabilities)
+                            {
+                                bool disableCapability = cap.DanskeBankImplementation != null &&
+                                    (cap.DanskeBankImplementation.Equals("No", StringComparison.OrdinalIgnoreCase) ||
+                                     cap.DanskeBankImplementation.Equals("Not available", StringComparison.OrdinalIgnoreCase));
+
+                                 <div style="
+                                    margin-bottom:10px;
+                                    padding:5px;
+                                    border-bottom:1px solid #ddd;
+                                    @(disableCapability ? "background-color:#d3d3d3;" : "")
+                                ">
+                                    <!-- Header row -->
+                                    <div style="display:flex; align-items:center; gap:10px;">
+                                        <span>
+                                            @cap.CapabilityName
+                                            @(string.IsNullOrEmpty(cap.DanskeBankImplementation)
+                                                ? ""
+                                                : $"({cap.DanskeBankImplementation})")
+                                        </span>
+                                        @if (!string.IsNullOrWhiteSpace(cap.SubcontrolDescription))
+                                        {
+                                            <RadzenButton Icon="@(IsDescriptionVisible(cap.Id) ? "expand_less" : "expand_more")"
+                                                          ButtonStyle="ButtonStyle.Secondary"
+                                                          Size="ButtonSize.Small"
+                                                          Click="@(args => ToggleDescription(cap.Id))"
+                                                          style="margin-left:auto;" />
+                                        }
+                                    </div>
+
+                                    @if (!disableCapability)
                                     {
-                                        <RadzenAccordionItem Text="@domainGroup.Domain" Icon="info">
-                                            @foreach (var cap in domainGroup.Capabilities)
-{
-    bool disableCapability = cap.DanskeBankImplementation != null &&
-        (cap.DanskeBankImplementation.Equals("No", StringComparison.OrdinalIgnoreCase) ||
-         cap.DanskeBankImplementation.Equals("Not available", StringComparison.OrdinalIgnoreCase));
-
-    <div style="margin-bottom:10px; padding:5px; border-bottom:1px solid #ddd; @(disableCapability ? "background-color: #d3d3d3;" : "")">
-        <div style="display: flex; align-items: center;">
-            <strong>
-                @cap.Control - @cap.SubControlID:
-            </strong>
-            <span style="margin-left: 5px;">
-                @cap.CapabilityName @(string.IsNullOrEmpty(cap.DanskeBankImplementation) ? string.Empty : $"({cap.DanskeBankImplementation})")
-            </span>
-            
-            @if (!string.IsNullOrWhiteSpace(cap.SubcontrolDescription))
-            {
-                <RadzenButton Icon="@(IsDescriptionVisible(cap.Id) ? "expand_less" : "expand_more")"
-                              ButtonStyle="ButtonStyle.Secondary"
-                              Size="ButtonSize.Small"
-                              Click="@(args => ToggleDescription(cap.Id))"
-                              Style="margin-left: 10px;" />
-            }
-        </div>
-        
-        @if (!disableCapability)
-        {
-            <div style="display: flex; align-items: center; margin-top: 5px;">
-                <RadzenDropDown @bind-Value="cap.Checked"
-                                Data="@(new List<string>{ "", "fulfilled", "unfulfilled" })"
-                                Style="width: 100px; flex-shrink: 0;" />
-                <RadzenTextBox @bind-Value="cap.Evidence"
-                               Style="flex-grow: 1; margin-left: 10px;" />
-                <RadzenButton Text="Add Pin"
-                              Click="@(async args => await AddPinForCapability(cap))"
-                              ButtonStyle="ButtonStyle.Primary"
-                              Size="ButtonSize.Small"
-                              Style="margin-left: 10px;" />
-            </div>
-        }
-
-        @* Render the SubcontrolDescription details if toggled visible *@
-        @if (IsDescriptionVisible(cap.Id))
-        {
-            <div style="margin-top: 5px; background-color: #f0f0f0; padding: 5px; border-radius: 5px;">
-                @cap.SubcontrolDescription
-            </div>
-        }
-    </div>
-}
-
-                                        </RadzenAccordionItem>
+                                        <!-- Controls row -->
+                                        <div style="display:flex; align-items:center; gap:10px; margin-top:5px;">
+                                            <RadzenDropDown @bind-Value="cap.Checked"
+                                                            Data="@(new List<string>{ "fulfilled", "unfulfilled" })"
+                                                            Placeholder="Fulfillment"
+                                                            style="flex:0 0 10%; min-width:80px;" />
+                                            <RadzenTextBox @bind-Value="cap.Evidence" style="flex:1;" />
+                                            <RadzenButton Text="Add Pin"
+                                                          Click="@(async args => await AddPinForCapability(cap))"
+                                                          ButtonStyle="ButtonStyle.Primary"
+                                                          Size="ButtonSize.Small" />
+                                        </div>
                                     }
-                                </Items>
-                            </RadzenAccordion>
+
+                                    @if (IsDescriptionVisible(cap.Id))
+                                    {
+                                        <div style="
+                                            margin-top:5px;
+                                            background-color:#f0f0f0;
+                                            padding:5px;
+                                            border-radius:5px;
+                                        ">
+                                            @cap.SubcontrolDescription
+                                        </div>
+                                    }
+                                </div>
+                            }
                         </RadzenTabsItem>
                     }
                 </Tabs>
@@ -180,11 +179,8 @@
         }
     }
 
-    private bool IsDescriptionVisible(string capId)
-    {
-        return showDescriptions.ContainsKey(capId) && showDescriptions[capId];
-    }
-
+    private bool IsDescriptionVisible(string capId) =>
+        showDescriptions.ContainsKey(capId) && showDescriptions[capId];
 
     protected override async Task OnInitializedAsync()
     {
@@ -195,17 +191,11 @@
             ImageHeight = assessment.ImageHeight;
             ReassignPinNumbers();
             GroupPinsByCapability();
-            GroupCapabilities(); 
+            GroupCapabilities();
         }
         catch (Exception ex)
         {
             errorMessage = $"Error loading assessment: {ex.Message}";
-        }
-        
-        Console.WriteLine($"Number of Fields: {groupedCapabilities.Count}");
-        foreach (var fieldGroup in groupedCapabilities)
-        {
-            Console.WriteLine($"Field: {fieldGroup.Field}, Domains Count: {fieldGroup.Domains.Count}");
         }
     }
 
@@ -213,11 +203,7 @@
     {
         groupedPins = assessment.Pins
             .GroupBy(p => p.CapabilityId)
-            .Select(g => new GroupedPin
-            {
-                CapabilityName = g.First().Capability.CapabilityName,
-                Pins = g.ToList()
-            })
+            .Select(g => new GroupedPin { CapabilityName = g.First().Capability.CapabilityName, Pins = g.ToList() })
             .ToList();
     }
 
@@ -228,13 +214,9 @@
             .Select(fieldGroup => new GroupedCapabilitiesByField
             {
                 Field = fieldGroup.Key,
-                Domains = fieldGroup.GroupBy(c => c.Domain)
-                    .Select(domainGroup => new GroupedCapabilitiesByDomain
-                    {
-                        Domain = domainGroup.Key,
-                        Capabilities = domainGroup.ToList()
-                    }).ToList()
-            }).ToList();
+                Capabilities = fieldGroup.ToList()
+            })
+            .ToList();
     }
 
     private async Task HandleFileSelected(InputFileChangeEventArgs e)
@@ -295,10 +277,7 @@
     {
         try
         {
-            
             var size = await JS.InvokeAsync<Size>("resizeHelper.getSize", imageContainer);
-
-            // 2) update our model
             assessment.ImageWidth  = size.width;
             assessment.ImageHeight = size.height;
             await AssessmentService.UpdateAssessmentAsync(assessment);
@@ -327,114 +306,44 @@
         }
     }
 
-    private void BackToAssessmentList()
-    {
+    private void BackToAssessmentList() =>
         NavigationManager.NavigateTo("/assessments", forceLoad: true);
-    }
 
     private void ReassignPinNumbers()
     {
         for (int i = 0; i < assessment.Pins.Count; i++)
-        {
             assessment.Pins[i].DisplayNumber = i + 1;
-        }
     }
 
+    private void OnChange(int index) => currentTabIndex = index;
 
-    private void OnChange(int index)
-    {
-        currentTabIndex = index;
-    }
-    
     private class GroupedPin
     {
         public string CapabilityName { get; set; }
         public List<Pin> Pins { get; set; }
     }
 
-    public class GroupedCapabilitiesByField
+    private class GroupedCapabilitiesByField
     {
         public string Field { get; set; }
-        public List<GroupedCapabilitiesByDomain> Domains { get; set; }
-    }
-
-    public class GroupedCapabilitiesByDomain
-    {
-        public string Domain { get; set; }
         public List<Capability> Capabilities { get; set; }
     }
+
     public record Size(int width, int height);
 }
+
 <style>
     .pin-normal { background-color: #002337; }
     .unselectable { user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; -o-user-select: none; }
-    .rz-button.rz-primary.rz-shade-default {
-        background-color: #00436a;
-    }
-    .rz-button.rz-success.rz-shade-default {
-        background-color: #006db9;
-    }
-
-    .rz-button.rz-secondary.rz-shade-default {
-    background-color: #00436a;
-    }
-    
-    .rz-button.rz-success {
-        background-color: #006db9;
-    }
-    .rz-button.rz-danger.rz-shade-default {
-        background-color: #f0f7fa;
-        color: black;
-    }
-    .rz-button.rz-danger {
-        background-color: #f0f7fa;
-        color: black;
-    }
-    .rz-tabview-title {
-        color: #00436a;
-    }
-
-    .rz-tabview.rz-tabview-top > .rz-tabview-nav .rz-tabview-selected {
-        border-bottom: 2px solid #00436a;
-    }
-
-    :root {
-        --rz-on-primary-lighter: #00436a;
-        --rz-primary: #00436a;
-    }
-
-    .resizable-image-container {
-        position: relative;
-        border: 1px solid #ccc;
-        overflow: hidden;   /* needed for native resize handle */
-        resize: both;     /* magic: allows drag‑to‑resize */
-
-        min-width: 200px;
-        min-height: 200px;
-    }
-
-    .resizable-image {
-        display: block;
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-    }
-
-    .pin-normal {
-        width:       20px;
-        height:      20px;
-        border-radius: 50%;
-        display:     flex;
-        align-items: center;
-        justify-content: center;
-        background-color: #002337;
-        color:       white;
-        font-weight: bold;
-        user-select: none;
-    }
-
-    .unselectable {
-        user-select: none;
-    }
+    .rz-button.rz-primary.rz-shade-default { background-color: #00436a; }
+    .rz-button.rz-success.rz-shade-default { background-color: #006db9; }
+    .rz-button.rz-secondary.rz-shade-default { background-color: #00436a; }
+    .rz-button.rz-danger.rz-shade-default { background-color: #f0f7fa; color: black; }
+    .rz-tabview-title { color: #00436a; }
+    .rz-tabview.rz-tabview-top > .rz-tabview-nav .rz-tabview-selected { border-bottom: 2px solid #00436a; }
+    :root { --rz-on-primary-lighter: #00436a; --rz-primary: #00436a; }
+    .resizable-image-container { position: relative; border: 1px solid #ccc; overflow: hidden; resize: both; min-width: 200px; min-height: 200px; }
+    .resizable-image { display: block; width: 100%; height: 100%; object-fit: contain; }
+    .pin-normal { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background-color: #002337; color: white; font-weight: bold; user-select: none; }
+    .unselectable { user-select: none; }
 </style>
-
