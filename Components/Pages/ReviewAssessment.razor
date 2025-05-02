@@ -85,7 +85,7 @@
                     </Template>
                 </RadzenDataGridColumn>
 
-                <RadzenDataGridColumn TItem="Capability" Property="Checked" Title="Checked">
+                <RadzenDataGridColumn TItem="Capability" Property="Checked" Title="Fulfillment">
                     <Template Context="capability">
                         <div @onmouseover="() => SelectCapability(capability)" @onmouseout="ResetSelection" style="cursor: pointer;">
                     <span style="@(capability == HoverPin?.Capability || capability == selectedCapability ? "color: #FF0000;" : "")">
@@ -113,7 +113,7 @@
                 <RadzenTextArea @bind-Value="justification" Style="width: 100%;" />
             </div>
             <div style="margin-top: 1rem;">
-                <RadzenButton Text="Accept" Click="AcceptAssessment" ButtonStyle="ButtonStyle.Primary" Style="margin-right: 10px;" />
+                <RadzenButton Text="Validate" Click="AcceptAssessment" ButtonStyle="ButtonStyle.Primary" Style="margin-right: 10px;" />
                 <RadzenButton Text="Reject" Click="RejectAssessment" ButtonStyle="ButtonStyle.Danger" />
             </div>
         }
