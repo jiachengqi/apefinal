@@ -62,7 +62,7 @@
             </Columns>
         </RadzenDataGrid>
         <RadzenHeading Size="H4" Text="Reviewed Assessments" Style="margin-top: 2rem;" />
-        <RadzenDataGrid TItem="Assessment" Data="@submittedAssessments.Where(a => a.Status == "Accepted" || a.Status == "Rejected")">
+        <RadzenDataGrid TItem="Assessment" Data="@submittedAssessments.Where(a => a.Status == "Validated" || a.Status == "Rejected")">
             <Columns>
                 <RadzenDataGridColumn TItem="Assessment" Title="ID">
                     <Template Context="assessment">

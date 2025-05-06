@@ -15,7 +15,7 @@
     else
     {
         <RadzenHeading Size="H3"
-                       Text=@($"Assessment ID {assessment.Id.Substring(0, 3)} for Application {assessment.ApplicationID}")
+                       Text=@($"Assessment ID: {assessment.Id.Substring(0, 3)} Application: {assessment.ApplicationID}")
                        style="font-weight: bold; color: #FFFFFF; padding: 10px 20px; margin: 10px 0; text-align: center; background-color: #00436a;"/>
         <div
             style="margin-top: 1rem; padding: 10px; background-color: #f5f5f5; border-radius: 5px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
@@ -27,51 +27,66 @@
             <RadzenLabel Text="Upload Solution Design Evidence (JPG/PNG):"/>
             <InputFile OnChange="HandleFileSelected" accept="image/jpeg,image/png"/>
         </div>
-        @if (assessment?.SolutionDesignImagePath != null)
-        {
-            <div
-                @ref="imageContainer"
-                class="resizable-image-container"
-                style="width:@(ImageWidth)px; height:@(ImageHeight)px;">
-                <img
-                    src="@assessment.SolutionDesignImagePath"
-                    class="resizable-image unselectable"
-                    draggable="false"/>
+        <div class="evidence-row">      
+        @if (assessment.SolutionDesignImagePath != null)
+{
+    <div class="evidence-row">
+        <!--‑‑ Picture + draggable pins –‑-->
+        <div class="evidence-container">
+            <img src="@assessment.SolutionDesignImagePath"
+                 class="resizable-image unselectable"
+                 draggable="false" />
 
-                @foreach (var pin in assessment.Pins)
-                {
-                    <DraggablePin
-                        X="@pin.X"
-                        Y="@pin.Y"
-                        Width="20"
-                        Height="20"
-                        OnDragEnd="(coords) => UpdatePinPosition(pin, coords)">
-                        <div class="pin-normal">@pin.DisplayNumber</div>
-                    </DraggablePin>
-                }
-            </div>
-        }
+            @foreach (var pin in assessment.Pins)
+            {
+                <DraggablePin X="@pin.X" Y="@pin.Y" Width="20" Height="20"
+                              OnDragEnd="coords => UpdatePinPosition(pin, coords)">
+                    <div class="pin-normal">@pin.DisplayNumber</div>
+                </DraggablePin>
+            }
+        </div>
 
-        <RadzenHeading Size="H4" Text="Pins List" Style="margin-top: 1rem;"/>
-        <RadzenDataGrid TItem="GroupedPin" Data="@groupedPins" @ref="pinsGrid">
-            <Columns>
-                <RadzenDataGridColumn TItem="GroupedPin" Property="CapabilityName" Title="Capability Name"/>
-                <RadzenDataGridColumn TItem="GroupedPin" Title="Pins">
-                    <Template Context="group">
-                        @foreach (var pin in group.Pins)
-                        {
-                            <div>
-                                Pin #: @pin.DisplayNumber
-                                <RadzenButton Text="Remove" Click="@(async args => await RemovePin(pin))"
-                                              ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small"/>
-                            </div>
-                        }
-                    </Template>
-                </RadzenDataGridColumn>
-            </Columns>
-        </RadzenDataGrid>
+        <!--‑‑ 320‑px pin list –‑-->
+        <div class="pin-panel">
+            <RadzenDataGrid TItem="GroupedPin"
+                            Data="@groupedPins"
+                            @ref="pinsGrid"
+                            Style="flex:1 1 auto;width:100%;height:100%;"
+                            ScrollMode="DataGridScrollMode.Scrollable"
+                            AllowPaging="false">
+                <Columns>
+                    <RadzenDataGridColumn TItem="GroupedPin"
+                                          Property="CapabilityName"
+                                          Title="Capability"
+                                          Width="230px" />
 
-        <RadzenHeading Size="H4" Text="Capabilities" Style="margin-top: 1rem;"/>
+                    <RadzenDataGridColumn TItem="GroupedPin"
+                                          Title="Pins"
+                                          Width="70px">
+                        <Template Context="group">
+                            @foreach (var p in group.Pins)
+                            {
+                                <div class="pin-row">
+                                    <span class="pin-no">#:@p.DisplayNumber</span>
+                                    <RadzenButton Icon="close"
+                                                  ButtonStyle="ButtonStyle.Danger"
+                                                  Size="ButtonSize.ExtraSmall"
+                                                  Style="padding:0;width:20px;height:20px;"
+                                                  Click="async _ => await RemovePin(p)" />
+                                </div>
+                            }
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGrid>
+        </div>
+    </div>
+}
+        </div>
+
+        
+
+        @* <RadzenHeading Size="H4" Text="Capabilities" Style="margin-top: 1rem;"/> *@
         @if (groupedCapabilities == null)
         {
             <p>Loading capabilities...</p>
@@ -82,27 +97,25 @@
             TabPosition="TabPosition.Top"
             RenderMode="TabRenderMode.Client">
   <Tabs>
-    @foreach (var fieldGroup in groupedCapabilities)
+    @foreach (var clusterGroup in groupedCapabilities)
     {
-      <RadzenTabsItem Text="@fieldGroup.Field">
+      <RadzenTabsItem Text="@clusterGroup.Cluster">
         <RadzenAccordion Multiple="true">
           <Items>
-            @foreach (var capGroup in fieldGroup.Capabilities)
+            @foreach (var capGroup in clusterGroup.Capabilities)
             {
                 <RadzenAccordionItem Text="@capGroup.CapabilityName">
                     <div class="d-flex align-items-center mb-2">
                         <!-- Left group stretches to fill, minus the Show Details button -->
                         <div class="d-flex align-items-center" style="flex: 1; margin-right: 1rem;">
-                            <RadzenDropDown
-                                @bind-Value="capGroup.Items.First().Checked"
-                                Data="@(new[]{ "", "fulfilled", "unfulfilled" })"
-                                Placeholder="Fulfillment"
-                                Style="flex: 0.1; margin-right: 1rem;" />
+                            <RadzenDropDown  @bind-Value="capGroup.UiChecked"
+                                             Data="@(new[]{ "", "fulfilled", "unfulfilled" })"
+                                             Placeholder="Fulfilment"
+                                             Style="flex:0.1; margin-right:1rem;" />
 
-                            <RadzenTextBox
-                                @bind-Value="capGroup.Items.First().Evidence"
-                                Placeholder="Evidence"
-                                Style="flex: 0.9;" />
+                            <RadzenTextBox   @bind-Value="capGroup.UiEvidence"
+                                             Placeholder="Evidence"
+                                             Style="flex:0.9;" />
 
                             <RadzenButton
                                 Text="Add Pin"
@@ -167,10 +180,8 @@
     private string errorMessage;
     private RadzenDataGrid<GroupedPin> pinsGrid;
     private IEnumerable<GroupedPin> groupedPins;
-    private List<GroupedCapabilitiesByFieldName> groupedCapabilities;
+    private List<GroupedCapabilitiesByCluster> groupedCapabilities;
     private int currentTabIndex = 0;
-    private double ImageWidth;
-    private double ImageHeight;
     private ElementReference imageContainer;
 
     private Dictionary<string, bool> showDescriptions = new Dictionary<string, bool>();
@@ -186,22 +197,7 @@
 
     private bool IsGroupDescriptionVisible(string capabilityName)
         => showGroupDescriptions.TryGetValue(capabilityName, out var visible) && visible;
-
-    private class CapabilityGroupVm
-    {
-        public string Field { get; set; }
-        public string CapabilityName { get; set; }
-
-        // these two drive the single UI inputs:
-        public string Checked { get; set; }
-        public string Evidence { get; set; }
-
-        // the actual EF entities to update later:
-        public List<Capability> BackingItems { get; set; }
-    }
-
-    private List<CapabilityGroupVm> vmGroups;
-
+    
     private void ToggleDescription(string capId)
     {
         if (showDescriptions.ContainsKey(capId))
@@ -224,29 +220,11 @@
     {
         try
         {
-            assessment = await AssessmentService.GetAssessmentByIdAsync(Id);
-            ImageWidth = assessment.ImageWidth;
-            ImageHeight = assessment.ImageHeight;
+            assessment   = await AssessmentService.GetAssessmentByIdAsync(Id);
+            
             ReassignPinNumbers();
             GroupPinsByCapability();
-            GroupCapabilitiesByFieldName();
-
-            vmGroups = assessment.Capabilities
-                .GroupBy(c => c.Field)
-                .SelectMany(fieldG =>
-                    fieldG
-                        .GroupBy(c => c.CapabilityName)
-                        .Select(capG => new CapabilityGroupVm
-                        {
-                            Field = fieldG.Key,
-                            CapabilityName = capG.Key,
-                            BackingItems = capG.ToList(),
-                            // initialize from the first
-                            Checked = capG.First().Checked,
-                            Evidence = capG.First().Evidence
-                        })
-                )
-                .ToList();
+            GroupCapabilitiesByCluster();
         }
         catch (Exception ex)
         {
@@ -254,35 +232,10 @@
         }
     }
 
-    private void GroupCapabilitiesByFieldName()
+    private void GroupCapabilitiesByCluster()
     {
-        groupedCapabilities = assessment.Capabilities
-            .GroupBy(c => c.Field)
-            .Select(fieldGroup => new GroupedCapabilitiesByFieldName
-            {
-                Field = fieldGroup.Key,
-                Capabilities = fieldGroup
-                    .GroupBy(c => c.CapabilityName)
-                    .Select(capGroup => new GroupedCapabilitiesByName
-                    {
-                        CapabilityName = capGroup.Key,
-                        Items = capGroup.ToList()
-                    })
-                    .ToList()
-            })
-            .ToList();
-    }
-
-    private class GroupedCapabilitiesByFieldName
-    {
-        public string Field { get; set; }
-        public List<GroupedCapabilitiesByName> Capabilities { get; set; }
-    }
-
-    private class GroupedCapabilitiesByName
-    {
-        public string CapabilityName { get; set; }
-        public List<Capability> Items { get; set; }
+        groupedCapabilities = CapabilityGrouper
+            .GroupByClusterThenName(assessment.Capabilities);
     }
 
     private void GroupPinsByCapability()
@@ -296,22 +249,6 @@
             })
             .ToList();
     }
-    //
-    // private void GroupCapabilities()
-    // {
-    //     groupedCapabilities = assessment.Capabilities
-    //         .GroupBy(c => c.Field)
-    //         .Select(fieldGroup => new GroupedCapabilitiesByField
-    //         {
-    //             Field = fieldGroup.Key,
-    //             Domains = fieldGroup.GroupBy(c => c.Domain)
-    //                 .Select(domainGroup => new GroupedCapabilitiesByDomain
-    //                 {
-    //                     Domain = domainGroup.Key,
-    //                     Capabilities = domainGroup.ToList()
-    //                 }).ToList()
-    //         }).ToList();
-    // }
 
     private async Task HandleFileSelected(InputFileChangeEventArgs e)
     {
@@ -371,19 +308,6 @@
     {
         try
         {
-            var size = await JS.InvokeAsync<Size>("resizeHelper.getSize", imageContainer);
-
-            // 2) update our model
-            assessment.ImageWidth = size.width;
-            assessment.ImageHeight = size.height;
-            foreach(var g in vmGroups)
-            {
-                foreach(var cap in g.BackingItems)
-                {
-                    cap.Checked  = g.Checked;
-                    cap.Evidence = g.Evidence;
-                }
-            }
             await AssessmentService.UpdateAssessmentAsync(assessment);
             errorMessage = "Saved successfully.";
         }
@@ -397,17 +321,6 @@
     {
         try
         {
-            var size = await JS.InvokeAsync<Size>("resizeHelper.getSize", imageContainer);
-            assessment.ImageWidth = size.width;
-            assessment.ImageHeight = size.height;
-            foreach(var g in vmGroups)
-            {
-                foreach(var cap in g.BackingItems)
-                {
-                    cap.Checked  = g.Checked;
-                    cap.Evidence = g.Evidence;
-                }
-            }
             await AssessmentService.UpdateAssessmentAsync(assessment);
             await AssessmentService.SubmitAssessmentAsync(assessment.Id, UserService.Email);
             NavigationManager.NavigateTo("/assessments", forceLoad: true);
@@ -442,18 +355,7 @@
         public string CapabilityName { get; set; }
         public List<Pin> Pins { get; set; }
     }
-
-    public class GroupedCapabilitiesByField
-    {
-        public string Field { get; set; }
-        public List<GroupedCapabilitiesByDomain> Domains { get; set; }
-    }
-
-    public class GroupedCapabilitiesByDomain
-    {
-        public string Domain { get; set; }
-        public List<Capability> Capabilities { get; set; }
-    }
+    
 
     public record Size(int width, int height);
 
@@ -511,15 +413,6 @@
         --rz-primary: #00436a;
     }
 
-    .resizable-image-container {
-        position: relative;
-        border: 1px solid #ccc;
-        overflow: hidden; /* needed for native resize handle */
-        resize: both; /* magic: allows drag‑to‑resize */
-
-        min-width: 200px;
-        min-height: 200px;
-    }
 
     .resizable-image {
         display: block;
@@ -541,8 +434,54 @@
         user-select: none;
     }
 
+    .rz-datagrid-cell {
+        white-space: normal;
+        word-wrap: break-word;
+    }
+
+
     .unselectable {
         user-select: none;
+    }
+
+    .rz-datagrid-cell           { white-space: normal; word-wrap: break-word; }
+
+    /* optional: distribute pin‑number + icon more neatly */
+    .pin-row                    { display:flex; align-items:center; }
+    .pin-no  {             /* fixed width so 1‑digit and 2‑digit values align */
+        display:inline-block;
+        width:42px;          /* tweak if you need more/less room */
+        text-align:right;
+        margin-right:4px;
+    }
+
+    .evidence-row {
+        display: flex;
+        gap: 1rem;          /* 16 px */
+        flex-wrap: nowrap;  /* NEVER wrap to the next line        */
+        overflow-x: auto;   /* show a scrollbar instead of wrapping */
+    }
+
+    /* picture frame – whatever canonical size you decided */
+    .evidence-container {
+        position: relative;
+        width: 1000px;      /* or 1200px – same number on both pages */
+        height: 800px;
+        border: 1px solid #ccc;
+        box-sizing: border-box;
+    }
+    .evidence-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    /* pin list – unchanged size */
+    .pin-panel {
+        width: 320px;
+        height: 800px;      /* match picture height so pins align */
+        display: flex;
+        flex-direction: column;
     }
 </style>
 

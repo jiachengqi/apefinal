@@ -14,26 +14,32 @@
             <RadzenLabel Text="Assessment Type:" style="font-weight: bold; color: #333; margin-bottom: 5px;" />
             <RadzenTextBox Value="@assessment.AssessmentType" ReadOnly="true" Style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background-color: #fff;" />
         </div>
+        
+        
         @if (!string.IsNullOrEmpty(assessment.SolutionDesignImagePath))
         {
-            <RadzenCard Style="position: relative; width:600px; height:400px; margin-top:1rem; border: 1px solid #ccc;">
-                <img src="@assessment.SolutionDesignImagePath" style="width:600px; height:400px;" />
+            <div class="evidence-container">
+                <img src="@assessment.SolutionDesignImagePath"/>
                 @foreach (var pin in assessment.Pins)
                 {
-                    @if ((HoverPin != null && HoverPin.CapabilityId == pin.CapabilityId) || (selectedCapability!= null && pin.Capability == selectedCapability))
+                    @if ((HoverPin != null && HoverPin.CapabilityId == pin.CapabilityId) || (selectedCapability != null && pin.Capability == selectedCapability))
                     {
                         backgroundColor = "#FF0000";
+                        opacity = "1";
                     }
                     else
                     {
                         backgroundColor = "#002337";
+                        opacity = "1";
                     }
+
                     @if ((HoverPin != null && HoverPin.CapabilityId != pin.CapabilityId) || (selectedCapability != null && pin.Capability != selectedCapability))
                     {
                         backgroundColor = "#dcdcdc";
+                        opacity = ".35";
                     }
 
-                    <div style="position: absolute; left:@(pin.X)px; top:@(pin.Y)px; width:@(pin.Width)px; height:@(pin.Height)px; background-color:@backgroundColor; border-radius:50%; cursor:default;"
+                    <div style="position: absolute; left:@(pin.X)px; top:@(pin.Y)px; width:@(pin.Width)px; height:@(pin.Height)px; background-color:@backgroundColor; opacity:@opacity;border-radius:50%; cursor:default;"
                          @onpointerover="() => HoverPin = pin"
                          @onpointerout="() => HoverPin = null">
                     </div>
@@ -43,81 +49,95 @@
                     <div style="position: absolute; left:@(HoverPin.X + TooltipOffsetX)px; top:@(HoverPin.Y - TooltipOffsetY)px; background-color:black; color:white; padding:4px 8px; border-radius:4px; pointer-events:none; white-space:nowrap;">
                         @HoverPin.Capability?.CapabilityName
                     </div>
-                    
+
                 }
-            </RadzenCard>
+            </div>
         }
-        <RadzenHeading Size="H4" Text="Capabilities" Style="margin-top: 1rem;" />
+        
+<RadzenHeading Size="H4" Text="Capabilities" Style="margin-top:1rem;" />
 
-
-
-
-
-        <RadzenDataGrid TItem="Capability" Data="@assessment.Capabilities">
-            <Columns>
-                <RadzenDataGridColumn TItem="Capability" Property="Control" Title="Control">
-                    <Template Context="capability">
-                        <div @onmouseover="() => SelectCapability(capability)" @onmouseout="ResetSelection" style="cursor: pointer;">
-                    <span style="@(capability == HoverPin?.Capability || capability == selectedCapability ? "color: #FF0000;" : "")">
-                        @capability.Control
+<div style="flex:1 1 auto; max-height:600px; overflow:auto;">
+    <RadzenDataGrid TItem="ReviewRow" Data="@reviewRows" Style="width:100%;">
+        <Columns>
+            <RadzenDataGridColumn TItem="ReviewRow" Title="SubCtrl" Width="160px">
+                <Template Context="row">
+                    @{
+                        capabilityLookup.TryGetValue(row.CapabilityName, out var cap);
+                        var css = cap == HoverPin?.Capability || cap == selectedCapability
+                            ? "hl" : "";
+                    }
+                    <div class="cap-cell @css"
+                         @onmouseover="() => { if(cap!=null) SelectCapability(cap); }"
+                         @onmouseout="ResetSelection">
+                        @foreach (var id in row.SubControlIds)
+                        {
+                            <div>@id</div>
+                        }
+                    </div>
+                </Template>
+            </RadzenDataGridColumn>
+            
+            <RadzenDataGridColumn TItem="ReviewRow" Property="CapabilityName"
+                                  Title="Capability" Width="260px">
+                <Template Context="row">
+                    @{
+                        capabilityLookup.TryGetValue(row.CapabilityName, out var cap);
+                        var css = cap == HoverPin?.Capability || cap == selectedCapability
+                                  ? "hl" : "";
+                    }
+                    <span class="cap-cell @css"
+                          @onmouseover="() => { if(cap!=null) SelectCapability(cap); }"
+                          @onmouseout="ResetSelection">
+                        @row.CapabilityName
                     </span>
-                        </div>
-                    </Template>
-                </RadzenDataGridColumn>
-
-                <RadzenDataGridColumn TItem="Capability" Property="SubControlID" Title="SubControl ID">
-                    <Template Context="capability">
-                        <div @onmouseover="() => SelectCapability(capability)" @onmouseout="ResetSelection" style="cursor: pointer;">
-                    <span style="@(capability == HoverPin?.Capability || capability == selectedCapability ? "color: #FF0000;" : "")">
-                        @capability.SubControlID
+                </Template>
+            </RadzenDataGridColumn>
+            
+            <RadzenDataGridColumn TItem="ReviewRow" Property="Checked"
+                                  Title="Fulfilment" Width="95px">
+                <Template Context="row">
+                    @{
+                        capabilityLookup.TryGetValue(row.CapabilityName, out var cap);
+                        var css = cap == HoverPin?.Capability || cap == selectedCapability
+                                  ? "hl" : "";
+                    }
+                    <span class="cap-cell @css"
+                          @onmouseover="() => { if(cap!=null) SelectCapability(cap); }"
+                          @onmouseout="ResetSelection">
+                        @row.Checked
                     </span>
-                        </div>
-                    </Template>
-                </RadzenDataGridColumn>
+                </Template>
+            </RadzenDataGridColumn>
 
-                <RadzenDataGridColumn TItem="Capability" Property="CapabilityName" Title="Capability Name">
-                    <Template Context="capability">
-                        <div @onmouseover="() => SelectCapability(capability)" @onmouseout="ResetSelection" style="cursor: pointer;">
-                    <span style="@(capability == HoverPin?.Capability || capability == selectedCapability ? "color: #FF0000;" : "")">
-                        @capability.CapabilityName
-                    </span>
-                        </div>
-                    </Template>
-                </RadzenDataGridColumn>
-
-                <RadzenDataGridColumn TItem="Capability" Property="Checked" Title="Checked">
-                    <Template Context="capability">
-                        <div @onmouseover="() => SelectCapability(capability)" @onmouseout="ResetSelection" style="cursor: pointer;">
-                    <span style="@(capability == HoverPin?.Capability || capability == selectedCapability ? "color: #FF0000;" : "")">
-                        @capability.Checked
-                    </span>
-                        </div>
-                    </Template>
-                </RadzenDataGridColumn>
-
-                <RadzenDataGridColumn TItem="Capability" Property="Evidence" Title="Evidence">
-                    <Template Context="capability">
-                        <div @onmouseover="() => SelectCapability(capability)" @onmouseout="ResetSelection" style="cursor: pointer;">
-                    <span style="@(capability == HoverPin?.Capability || capability == selectedCapability ? "color: #FF0000;" : "")">
-                        @capability.Evidence
-                    </span>
-                        </div>
-                    </Template>
-                </RadzenDataGridColumn>
-            </Columns>
-        </RadzenDataGrid>
-        @if (assessment.Status != "Accepted" && assessment.Status != "Rejected" && UserService.Role != "Requester")
+            <RadzenDataGridColumn TItem="ReviewRow" Title="Evidence">
+                <Template Context="row">
+                    @{
+                        capabilityLookup.TryGetValue(row.CapabilityName, out var cap);
+                        var css = cap == HoverPin?.Capability || cap == selectedCapability
+                                  ? "hl" : "";
+                    }
+                    <div class="evidence-box cap-cell @css"
+                         @onmouseover="() => { if(cap!=null) SelectCapability(cap); }"
+                         @onmouseout="ResetSelection">
+                        @row.Evidence
+                    </div>
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+</div>
+        @if (assessment.Status != "Validated" && assessment.Status != "Rejected" && UserService.Role != "Requester")
         {
             <div style="margin-top: 1rem;">
                 <RadzenLabel Text="Justification:" />
                 <RadzenTextArea @bind-Value="justification" Style="width: 100%;" />
             </div>
             <div style="margin-top: 1rem;">
-                <RadzenButton Text="Accept" Click="AcceptAssessment" ButtonStyle="ButtonStyle.Primary" Style="margin-right: 10px;" />
+                <RadzenButton Text="Validate" Click="AcceptAssessment" ButtonStyle="ButtonStyle.Primary" Style="margin-right: 10px;" />
                 <RadzenButton Text="Reject" Click="RejectAssessment" ButtonStyle="ButtonStyle.Danger" />
             </div>
         }
-        @if (assessment.Status == "Accepted" || assessment.Status == "Rejected")
+        @if (assessment.Status == "Validated" || assessment.Status == "Rejected")
         {
             if (assessment.Justification != null)
             {
@@ -144,12 +164,24 @@
     private int TooltipOffsetX = 35;
     private int TooltipOffsetY = 20;
     private Capability? selectedCapability;
+    private string opacity;
+    
+    
+    private record ReviewRow(
+        IReadOnlyList<string> SubControlIds,  
+        string CapabilityName,
+        string Checked,
+        string Evidence);
+    
+    private Dictionary<string, Capability> capabilityLookup = new(StringComparer.OrdinalIgnoreCase);
+    
+    private IReadOnlyList<ReviewRow> reviewRows = Array.Empty<ReviewRow>();
     protected override async Task OnInitializedAsync()
     {
         assessment = await AssessmentService.GetAssessmentByIdAsync(Id);
         if (UserService.Role == "Reviewer")
         {
-            if (assessment.Status != "UnderReview" && assessment.Status != "Accepted" && assessment.Status != "Rejected")
+            if (assessment.Status != "UnderReview" && assessment.Status != "Validated" && assessment.Status != "Rejected")
             {
                 assessment.Status = "UnderReview";
                 assessment.StartReviewBy = UserService.Email;
@@ -157,6 +189,24 @@
                 await AssessmentService.UpdateAssessmentAsync(assessment);
             }
         }
+        reviewRows = assessment.Capabilities
+            .GroupBy(c => (c.CapabilityName ?? string.Empty).Trim(),
+                StringComparer.OrdinalIgnoreCase)
+            .Select(g => new ReviewRow(
+                SubControlIds : g.Select(x => x.SubControlID) 
+                    .Distinct()
+                    .OrderBy(id => id) 
+                    .ToList(),
+                CapabilityName: g.Key,
+                Checked       : g.First().Checked  ?? "",
+                Evidence      : g.First().Evidence ?? ""
+            ))
+            .ToList();
+        
+        capabilityLookup = assessment.Capabilities
+            .GroupBy(c => (c.CapabilityName ?? string.Empty).Trim(),
+                StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
     }
     private async Task AcceptAssessment() { await AssessmentService.ReviewAssessmentAsync(Id, UserService.Email, "", true); NavigationManager.NavigateTo("/review", true); }
     private void BackToAssessmentList()
@@ -205,5 +255,28 @@
 :root {
     --rz-on-primary-lighter: #00436a;
     --rz-primary: #00436a;
+}
+
+.evidence-container {
+    position: relative;
+    width: 1000px;   
+    height: 800px;    
+    border: 1px solid #ccc;
+    
+    box-sizing: border-box;
+}
+
+.evidence-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.hl { color:#FF0000; }
+.cap-cell { white-space:normal; word-wrap:break-word; }
+.evidence-box {
+    max-width:600px;
+    overflow-x:auto;
+    white-space:nowrap;
 }
 </style>

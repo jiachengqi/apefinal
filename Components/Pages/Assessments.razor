@@ -94,7 +94,7 @@
     private async Task EditAssessment(string id)
     {
         var assessment = await AssessmentService.GetAssessmentByIdAsync(id);
-        if (assessment.Status != "Accepted" && assessment.Status != "Rejected" && assessment.Status != "Submitted" && assessment.Status != "UnderReview")
+        if (assessment.Status != "Validated" && assessment.Status != "Rejected" && assessment.Status != "Submitted" && assessment.Status != "UnderReview")
         {
             NavigationManager.NavigateTo($"/edit-assessment/{id}", true);
         }

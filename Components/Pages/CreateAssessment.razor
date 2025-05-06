@@ -26,14 +26,19 @@
     private string applicationID;
     private async Task CreateNewAssessment()
     {
-        var assessment = new Assessment
+        
+        if (!string.IsNullOrWhiteSpace(applicationID))
         {
-            Email = UserService.Email,
-            AssessmentType = assessmentType,
-            ApplicationID = applicationID
-        };
-        await AssessmentService.CreateAssessmentAsync(assessment, assessmentType);
-        NavigationManager.NavigateTo($"/edit-assessment/{assessment.Id}", true);
+            var assessment = new Assessment
+            {
+                Email = UserService.Email,
+                AssessmentType = assessmentType,
+                ApplicationID = applicationID
+            };
+            await AssessmentService.CreateAssessmentAsync(assessment, assessmentType);
+            NavigationManager.NavigateTo($"/edit-assessment/{assessment.Id}", true);
+        }
+        
     }
     
     private void BackToHome() => NavigationManager.NavigateTo("/", true);
