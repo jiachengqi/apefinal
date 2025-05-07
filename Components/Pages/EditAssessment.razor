@@ -105,34 +105,30 @@
             @foreach (var capGroup in clusterGroup.Capabilities)
             {
                 <RadzenAccordionItem Text="@capGroup.CapabilityName">
-                    <div class="d-flex align-items-center mb-2">
-                        <!-- Left group stretches to fill, minus the Show Details button -->
-                        <div class="d-flex align-items-center" style="flex: 1; margin-right: 1rem;">
-                            <RadzenDropDown  @bind-Value="capGroup.UiChecked"
-                                             Data="@(new[]{ "", "fulfilled", "unfulfilled" })"
-                                             Placeholder="Fulfilment"
-                                             Style="flex:0.1; margin-right:1rem;" />
+                    <div class="d-flex align-items-center mb-2 line-inputs">
+                        <RadzenDropDown @bind-Value="capGroup.UiChecked"
+                                        Data="@(new[] { "fulfilled", "unfulfilled" })"
+                                        Placeholder="Fulfilment"
+                                        AllowClear="false"
+                                        Style="width:120px;" />
 
-                            <RadzenTextBox   @bind-Value="capGroup.UiEvidence"
-                                             Placeholder="Evidence"
-                                             Style="flex:0.9;" />
+                        <RadzenTextBox  @bind-Value="capGroup.UiEvidence"
+                                        Placeholder="@(capGroup.UiChecked == "unfulfilled" ? "Justification" : "Evidence")"
+                                        Style="flex:1 1 auto;" />
 
-                            <RadzenButton
-                                Text="Add Pin"
-                                Click="@(async () => await AddPinForCapability(capGroup.Items.First()))"
-                                ButtonStyle="ButtonStyle.Primary"
-                                Size="ButtonSize.Small"
-                                Style="margin-left: 1rem; flex-shrink: 0;" />
-                        </div>
+                        <RadzenButton Text="Add Pin"
+                                      Click="@(async () => await AddPinForCapability(capGroup.Items.First()))"
+                                      ButtonStyle="ButtonStyle.Primary"
+                                      Size="ButtonSize.Small" />
 
-                        <!-- Show/Hide details button stays on the right -->
-                        <RadzenButton
-                            Text="@(IsGroupDescriptionVisible(capGroup.CapabilityName) ? "Hide Details" : "Show Details")"
-                            ButtonStyle="ButtonStyle.Secondary"
-                            Size="ButtonSize.Small"
-                            Click="() => ToggleGroupDescription(capGroup.CapabilityName)"
-                            Style="flex-shrink: 0;" />
+                        <RadzenButton Text="@(IsGroupDescriptionVisible(capGroup.CapabilityName) ? "Hide Details" : "Show Details")"
+                                      ButtonStyle="ButtonStyle.Secondary"
+                                      Size="ButtonSize.Small"
+                                      Click="() => ToggleGroupDescription(capGroup.CapabilityName)" />
                     </div>
+
+                    
+                    
 
 
                     <ul class="list-unstyled p-0">
@@ -482,6 +478,10 @@
         height: 800px;      /* match picture height so pins align */
         display: flex;
         flex-direction: column;
+    }
+
+    .line-inputs {
+        gap: 1rem;          /* horizontal breathing-room between every item        */
     }
 </style>
 

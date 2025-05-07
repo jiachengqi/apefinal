@@ -110,7 +110,7 @@ namespace apenew.Services
     CapabilityLoader.AddCapability("IR2.2.1", "Identify business‑critical assets and processes requiring protection."    , "Recovery & Resilience"      , "Business Continuity & Asset Management", "Product");
     CapabilityLoader.AddCapability("IR2.4.1", "Implement logging and monitoring to detect data alterations."             , "Security Operations"        , "SIEM"                                  , "Product");
 
-    CapabilityLoader.AddCapability("SD1.1.2", "Security requirements should be defined and documented for all new system developments." , "Governance & Compliance" , "Assessment Process Engine" , "Both");
+    // CapabilityLoader.AddCapability("SD1.1.2", "Security requirements should be defined and documented for all new system developments." , "Governance & Compliance" , "Assessment Process Engine" , "Both");
     CapabilityLoader.AddCapability("SD1.2.1", "Development and production environments should be strictly segregated."                   , "Platform Security"        , "Environment Segmentation"   , "Both");
     CapabilityLoader.AddCapability("SD1.3.1", "Conduct regular security reviews as part of software testing processes."                  , "Code Security"            , "4‑eyes principle"           , "Product");
     CapabilityLoader.AddCapability("SD1.3.2", "Use automated security testing tools in development and testing phases."                  , "Code Security"            , "SAST & DAST"                , "Product");
@@ -119,7 +119,7 @@ namespace apenew.Services
     // CapabilityLoader.AddCapability("SD2.4.1", "Standardized security hardening guidelines should be followed for system builds."        , "Platform Security"        , "Hardened Configs"            , "Both");
     // CapabilityLoader.AddCapability("SD2.4.2", "Systems should be patched and updated before deployment."                                 , "Platform Security"        , "Patch Management"           , "Both");
     // CapabilityLoader.AddCapability("SD2.5.1", "Perform penetration testing on all critical systems before deployment."                   , "Security Operations"      , "Pen Testing"                , "Both");
-    // CapabilityLoader.AddCapability("SD2.5.2", "Automated security scanning should be integrated into CI/CD pipelines."                  , "Code Security"            , "SAST & DAST"                , "Both");
+    CapabilityLoader.AddCapability("SD2.5.2", "Automated security scanning should be integrated into CI/CD pipelines."                  , "Code Security"            , "SAST & DAST"                , "Both");
     // CapabilityLoader.AddCapability("SD2.6.1", "Require peer review of all critical code for security vulnerabilities."                  , "Code Security"            , "4‑eyes principle"           , "Both");
     // CapabilityLoader.AddCapability("SD2.10",  "Ensure secure decommissioning of obsolete systems."                                      , "Governance & Compliance"  , "Decomissioning Plan"        , "Both");
     //
