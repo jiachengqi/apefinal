@@ -110,11 +110,13 @@
                                         Data="@(new[] { "fulfilled", "unfulfilled" })"
                                         Placeholder="Fulfilment"
                                         AllowClear="false"
-                                        Style="width:120px;" />
+                                        Style="width:130px;" />
 
-                        <RadzenTextBox  @bind-Value="capGroup.UiEvidence"
+                        <RadzenTextArea  @bind-Value="capGroup.UiEvidence"
                                         Placeholder="@(capGroup.UiChecked == "unfulfilled" ? "Justification" : "Evidence")"
-                                        Style="flex:1 1 auto;" />
+                                        
+                                        Style="flex:1 1 300px; height:38px; min-height:38px; resize:vertical;" />
+                        
 
                         <RadzenButton Text="Add Pin"
                                       Click="@(async () => await AddPinForCapability(capGroup.Items.First()))"

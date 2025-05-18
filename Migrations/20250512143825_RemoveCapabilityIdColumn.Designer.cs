@@ -12,8 +12,8 @@ using apenew;
 namespace apenew.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250422214417_AddImageSizeToAssessment")]
-    partial class AddImageSizeToAssessment
+    [Migration("20250512143825_RemoveCapabilityIdColumn")]
+    partial class RemoveCapabilityIdColumn
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -99,19 +99,10 @@ namespace apenew.Migrations
                     b.Property<string>("Checked")
                         .HasColumnType("text");
 
-                    b.Property<string>("Control")
-                        .HasColumnType("text");
-
-                    b.Property<string>("DanskeBankImplementation")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Domain")
+                    b.Property<string>("Cluster")
                         .HasColumnType("text");
 
                     b.Property<string>("Evidence")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Field")
                         .HasColumnType("text");
 
                     b.Property<string>("Scope")
