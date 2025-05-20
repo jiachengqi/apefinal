@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using System
 @inject UserService UserService
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
@@ -6,41 +7,88 @@
 <div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
     <div style="max-width: 400px; width: 100%; padding: 1rem; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 5px; background-color: white;">
         <h3 style="text-align: center;">Login</h3>
-        <RadzenLabel Text="Email:" />
-        <RadzenTextBox @bind-Value="email" Style="width: 100%; " />
+        <RadzenLabel Text="Email / Username:" />
+        <RadzenTextBox @bind-Value="email" Style="width: 100%;" />
+
+        <RadzenLabel Text="Password:" Style="margin-top: 1rem;" />
+        <RadzenPassword @bind-Value="password" Style="width: 100%;" />
+
         <RadzenLabel Text="Role:" Style="margin-top: 1rem; color: #00436a" />
         <RadzenDropDown @bind-Value="role" Data="roles" TextProperty="Role" ValueProperty="Role" Style="width: 100%;" />
+
         <RadzenButton Text="Login" Click="LoginButton" Style="margin-top: 1rem; width: 100%;" ButtonStyle="ButtonStyle.Primary" />
+
+        @if (!string.IsNullOrWhiteSpace(errorMessage))
+        {
+            <div style="margin-top:1rem;color:red;text-align:center;">@errorMessage</div>
+        }
     </div>
 </div>
 
 @code {
     private string email;
+    private string password;
     private string role = "Requester";
+    private string errorMessage;
+
     private List<RoleOption> roles = new List<RoleOption>
     {
         new RoleOption { Role = "Requester" },
         new RoleOption { Role = "Reviewer" }
     };
+
     private void LoginButton()
+    {
+        errorMessage = null;
+
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+        {
+            errorMessage = "Please enter both username and password.";
+            return;
+        }
+
+        if (role == "Requester")
+        {
+            // Requesters can use any password
+            ProceedToApp();
+            return;
+        }
+
+        if (role == "Reviewer")
+        {
+            if ((email.Equals("Jesper", StringComparison.OrdinalIgnoreCase) ||
+                 email.Equals("Dominik", StringComparison.OrdinalIgnoreCase)) &&
+                password == "12345678")
+            {
+                ProceedToApp();
+                return;
+            }
+        }
+
+        errorMessage = "User is not authorized to login";
+    }
+
+    private void ProceedToApp()
     {
         UserService.Email = email;
         UserService.Role = role;
         NavigationManager.NavigateTo(role == "Requester" ? "/assessments" : "/review", true);
     }
+
     public class RoleOption { public string Role { get; set; } }
 }
 
 <style>
 .rz-button.rz-primary.rz-shade-default {
-        background-color: #00436a;
-    }
+    background-color: #00436a;
+}
 
 .radzen-dropdown .ui-dropdown:focus {
     background-color: #00436a;
 }
 
-.radzen-textbox .ui-inputtext:focus {
+.radzen-textbox .ui-inputtext:focus,
+.radzen-password .ui-inputtext:focus {
     background-color: #00436a;
 }
 
@@ -48,5 +96,4 @@
     --rz-on-primary-lighter: #00436a;
     --rz-primary: #00436a;
 }
-
 </style>

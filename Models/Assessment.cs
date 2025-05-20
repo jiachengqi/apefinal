@@ -16,6 +16,8 @@ namespace apenew.Models
         public string AssessmentType { get; set; }
         public string ApplicationID { get; set; }
         public string? Justification { get; set; }
+        
+        public string Criticality { get; set; }
         public string? SolutionDesignImagePath { get; set; }
         
         public double ImageWidth  { get; set; } = 600;

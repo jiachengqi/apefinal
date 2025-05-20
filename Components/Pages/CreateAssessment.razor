@@ -17,12 +17,17 @@
             <RadzenLabel Text="Application ID:" />
             <RadzenTextBox @bind-Value="applicationID" Style="width: 100%;" />
         </div>
+        <div style="margin-top: 1rem;">
+            <RadzenLabel Text="Criticality:" />
+            <RadzenDropDown @bind-Value="criticality" Data="@(new List<string> { "C1", "C2", "C3", "C4" })" Style="width: 100%;" />
+        </div>
         <RadzenButton Text="Create" Click="CreateNewAssessment" Style="margin-top: 1rem;" ButtonStyle="ButtonStyle.Primary" />
     </div>
 </div>
 
 @code {
     private string assessmentType = "Product";
+    private string criticality = "C1";
     private string applicationID;
     private async Task CreateNewAssessment()
     {
@@ -33,7 +38,8 @@
             {
                 Email = UserService.Email,
                 AssessmentType = assessmentType,
-                ApplicationID = applicationID
+                ApplicationID = applicationID,
+                Criticality = criticality
             };
             await AssessmentService.CreateAssessmentAsync(assessment, assessmentType);
             NavigationManager.NavigateTo($"/edit-assessment/{assessment.Id}", true);
