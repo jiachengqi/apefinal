@@ -4,8 +4,7 @@
 @inject UserService UserService
 @inject NavigationManager NavigationManager
 
-<RadzenButton Text="Home" Click="BackToHome" ButtonStyle="ButtonStyle.Light" />
-
+<RadzenButton Text="Home" Click="@BackToHome" ButtonStyle="ButtonStyle.Light" />
 <div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
     <div style="max-width: 400px; width: 100%; padding: 1rem; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 5px; background-color: white;">
         <h3 style="text-align: center;">New Assessment</h3>
@@ -48,6 +47,7 @@
     }
     
     private void BackToHome() => NavigationManager.NavigateTo("/", true);
+    private void BackToLastPage() => NavigationManager.NavigateTo("/assessments", true);
 }
 
 <style>

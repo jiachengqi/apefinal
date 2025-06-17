@@ -15,7 +15,7 @@ namespace apenew.Models
         public string? Checked  { get; set; }           
         public string? Evidence { get; set; }
         
-
+        public string? ReviewerComment { get; set; } 
         public string? Scope                    { get; set; }
 
         public Assessment? Assessment { get; set; }

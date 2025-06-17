@@ -1,297 +1,246 @@
 ﻿@page "/edit-assessment/{Id}"
 @using apenew.Helper
-@inject AssessmentService AssessmentService
-@inject UserService UserService
-@inject NavigationManager NavigationManager
-@inject IJSRuntime JS
+@inject AssessmentService  AssessmentService
+@inject UserService        UserService
+@inject NavigationManager  NavigationManager
+@inject IJSRuntime         JS
 @rendermode InteractiveServer
 
-<RadzenCard Style="max-width: 1400px; margin: 2rem auto; padding: 1rem;">
-    <RadzenButton Text="Back" Click="BackToAssessmentList" ButtonStyle="ButtonStyle.Light"/>
-    @if (assessment == null)
+<RadzenCard class="page-card">
+    <!-- top bar -->
+    <div class="title-bar">
+        <RadzenButton Text="Back"
+                      ButtonStyle="ButtonStyle.Light"
+                      Click="BackToAssessmentList" />
+
+        <RadzenButton Text="Upload Solution Design"
+                      ButtonStyle="ButtonStyle.Primary"
+                      Click="UploadSolutionDesign" />
+    </div>
+
+    <!-- hidden file input -->
+    <InputFile @ref="hiddenFile"
+               OnChange="HandleFileSelected"
+               accept="image/jpeg,image/png"
+               style="display:none;" />
+
+    @if (assessment is null)
     {
-        <p>Loading...</p>
+        <p>Loading…</p>
     }
     else
     {
-        <RadzenHeading Size="H3"
-                       Text=@($"Assessment ID: {assessment.Id.Substring(0, 3)} Application: {assessment.ApplicationID}")
-                       style="font-weight: bold; color: #FFFFFF; padding: 10px 20px; margin: 10px 0; text-align: center; background-color: #00436a;"/>
-        <div
-            style="margin-top: 1rem; padding: 10px; background-color: #f5f5f5; border-radius: 5px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-            <RadzenLabel Text="Assessment Type:" style="font-weight: bold; color: #333; margin-bottom: 5px;"/>
-            <RadzenTextBox Value="@assessment.AssessmentType" ReadOnly="true"
-                           Style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background-color: #fff;"/>
+        <!-- summary -->
+        <div class="info-bar">
+            <div><span class="info-label">Assessment&nbsp;ID</span><span>@assessment.Id</span></div>
+            <div><span class="info-label">Application&nbsp;ID</span><span>@assessment.ApplicationID</span></div>
+            <div><span class="info-label">Type</span><span>@assessment.AssessmentType</span></div>
+            <div><span class="info-label">Criticality</span><span>@assessment.Criticality</span></div>
         </div>
-        <div style="margin-top: 1rem;">
-            <RadzenLabel Text="Upload Solution Design Evidence (JPG/PNG):"/>
-            <InputFile OnChange="HandleFileSelected" accept="image/jpeg,image/png"/>
-        </div>
-        <div class="evidence-row">      
-        @if (assessment.SolutionDesignImagePath != null)
-{
-    <div class="evidence-row">
-        <!--‑‑ Picture + draggable pins –‑-->
-        <div class="evidence-container">
-            <img src="@assessment.SolutionDesignImagePath"
-                 class="resizable-image unselectable"
-                 draggable="false" />
 
-            @foreach (var pin in assessment.Pins)
+        <!-- evidence -->
+        <div class="evidence-row">
+            @if (assessment.SolutionDesignImagePath is not null)
             {
-                <DraggablePin X="@pin.X" Y="@pin.Y" Width="20" Height="20"
-                              OnDragEnd="coords => UpdatePinPosition(pin, coords)">
-                    <div class="pin-normal">@pin.DisplayNumber</div>
-                </DraggablePin>
+                <div class="evidence-row">
+                    <div class="evidence-container">
+                        <img src="@assessment.SolutionDesignImagePath"
+                             class="resizable-image unselectable"
+                             draggable="false" />
+                        @foreach (var pin in assessment.Pins)
+                        {
+                            <DraggablePin X="@pin.X" Y="@pin.Y" Width="20" Height="20"
+                                          OnDragEnd="coords => UpdatePinPosition(pin, coords)">
+                                <div class="pin-normal">@pin.DisplayNumber</div>
+                            </DraggablePin>
+                        }
+                    </div>
+
+                    <div class="pin-panel">
+                        <RadzenDataGrid TItem="GroupedPin"
+                                        Data="@groupedPins"
+                                        @ref="pinsGrid"
+                                        AllowPaging="false"
+                                        Style="width:100%;height:100%;">
+                            <Columns>
+                                <RadzenDataGridColumn TItem="GroupedPin"
+                                                      Property="CapabilityName"
+                                                      Title="Capability"
+                                                      Width="230px" />
+                                <RadzenDataGridColumn TItem="GroupedPin" Title="Pins" Width="70px">
+                                    <Template Context="grp">
+                                        @foreach (var p in grp.Pins)
+                                        {
+                                            <div class="pin-row">
+                                                <span class="pin-no">#@p.DisplayNumber</span>
+                                                <RadzenButton Icon="close"
+                                                              ButtonStyle="ButtonStyle.Danger"
+                                                              Size="ButtonSize.ExtraSmall"
+                                                              Style="padding:0;width:20px;height:20px;"
+                                                              Click="async _ => await RemovePin(p)" />
+                                            </div>
+                                        }
+                                    </Template>
+                                </RadzenDataGridColumn>
+                            </Columns>
+                        </RadzenDataGrid>
+                    </div>
+                </div>
             }
         </div>
 
-        <!--‑‑ 320‑px pin list –‑-->
-        <div class="pin-panel">
-            <RadzenDataGrid TItem="GroupedPin"
-                            Data="@groupedPins"
-                            @ref="pinsGrid"
-                            Style="flex:1 1 auto;width:100%;height:100%;"
-                            ScrollMode="DataGridScrollMode.Scrollable"
-                            AllowPaging="false">
-                <Columns>
-                    <RadzenDataGridColumn TItem="GroupedPin"
-                                          Property="CapabilityName"
-                                          Title="Capability"
-                                          Width="230px" />
-
-                    <RadzenDataGridColumn TItem="GroupedPin"
-                                          Title="Pins"
-                                          Width="70px">
-                        <Template Context="group">
-                            @foreach (var p in group.Pins)
-                            {
-                                <div class="pin-row">
-                                    <span class="pin-no">#:@p.DisplayNumber</span>
-                                    <RadzenButton Icon="close"
-                                                  ButtonStyle="ButtonStyle.Danger"
-                                                  Size="ButtonSize.ExtraSmall"
-                                                  Style="padding:0;width:20px;height:20px;"
-                                                  Click="async _ => await RemovePin(p)" />
-                                </div>
-                            }
-                        </Template>
-                    </RadzenDataGridColumn>
-                </Columns>
-            </RadzenDataGrid>
-        </div>
-    </div>
-}
-        </div>
-
-        
-
-        @* <RadzenHeading Size="H4" Text="Capabilities" Style="margin-top: 1rem;"/> *@
-        @if (groupedCapabilities == null)
+        <!-- capabilities (unchanged) -->
+        @if (groupedCapabilities is null)
         {
-            <p>Loading capabilities...</p>
+            <p>Loading capabilities…</p>
         }
         else
         {
             <RadzenTabs Change="@OnChange"
-            TabPosition="TabPosition.Top"
-            RenderMode="TabRenderMode.Client">
-  <Tabs>
-    @foreach (var clusterGroup in groupedCapabilities)
-    {
-      <RadzenTabsItem Text="@clusterGroup.Cluster">
-        <RadzenAccordion Multiple="true">
-          <Items>
-            @foreach (var capGroup in clusterGroup.Capabilities)
-            {
-                <RadzenAccordionItem Text="@capGroup.CapabilityName">
-                    <div class="d-flex align-items-center mb-2 line-inputs">
-                        <RadzenDropDown @bind-Value="capGroup.UiChecked"
-                                        Data="@(new[] { "fulfilled", "unfulfilled" })"
-                                        Placeholder="Fulfilment"
-                                        AllowClear="false"
-                                        Style="width:130px;" />
+                        TabPosition="TabPosition.Top"
+                        RenderMode="TabRenderMode.Client">
+                <Tabs>
+                    @foreach (var clusterGroup in groupedCapabilities)
+                    {
+                        <RadzenTabsItem Text="@clusterGroup.Cluster">
+                            <RadzenAccordion Multiple="true">
+                                <Items>
+                                    @foreach (var capGroup in clusterGroup.Capabilities)
+                                    {
+                                        <RadzenAccordionItem Text="@capGroup.CapabilityName">
+                                            <div class="d-flex align-items-center mb-2 line-inputs">
+                                                <RadzenDropDown @bind-Value="capGroup.UiChecked"
+                                                                Data="@(new[]{ "Fulfilled","Unfulfilled"})"
+                                                                Style="width:130px;" />
 
-                        <RadzenTextArea  @bind-Value="capGroup.UiEvidence"
-                                        Placeholder="@(capGroup.UiChecked == "unfulfilled" ? "Justification" : "Evidence")"
-                                        
-                                        Style="flex:1 1 300px; height:38px; min-height:38px; resize:vertical;" />
-                        
+                                                <RadzenTextArea @bind-Value="capGroup.UiEvidence"
+                                                                Placeholder="@(capGroup.UiChecked == "Unfulfilled" ? "Justification" : "Evidence")"
+                                                                Style="flex:1 1 300px; height:38px; min-height:38px; resize:vertical;" />
 
-                        <RadzenButton Text="Add Pin"
-                                      Click="@(async () => await AddPinForCapability(capGroup.Items.First()))"
-                                      ButtonStyle="ButtonStyle.Primary"
-                                      Size="ButtonSize.Small" />
+                                                <RadzenButton Text="Add Pin"
+                                                              ButtonStyle="ButtonStyle.Primary"
+                                                              Size="ButtonSize.Small"
+                                                              Click="() => AddPinForCapability(capGroup.Items.First())" />
 
-                        <RadzenButton Text="@(IsGroupDescriptionVisible(capGroup.CapabilityName) ? "Hide Details" : "Show Details")"
-                                      ButtonStyle="ButtonStyle.Secondary"
-                                      Size="ButtonSize.Small"
-                                      Click="() => ToggleGroupDescription(capGroup.CapabilityName)" />
-                    </div>
+                                                <RadzenButton Text="@(IsGroupDescriptionVisible(capGroup.CapabilityName) ? "Hide Details" : "Show Details")"
+                                                              ButtonStyle="ButtonStyle.Secondary"
+                                                              Size="ButtonSize.Small"
+                                                              Click="() => ToggleGroupDescription(capGroup.CapabilityName)" />
+                                            </div>
 
-                    
-                    
+                                            <ul class="list-unstyled p-0">
+                                                @foreach (var sub in capGroup.Items)
+                                                {
+                                                    <li>
+                                                        @if (IsGroupDescriptionVisible(capGroup.CapabilityName))
+                                                        {
+                                                            <div class="mt-2 p-2 bg-light rounded">
+                                                                @sub.SubcontrolDescription
+                                                            </div>
+                                                        }
+                                                    </li>
+                                                }
+                                            </ul>
+                                        </RadzenAccordionItem>
+                                    }
+                                </Items>
+                            </RadzenAccordion>
+                        </RadzenTabsItem>
+                    }
+                </Tabs>
+            </RadzenTabs>
+        }
 
-
-                    <ul class="list-unstyled p-0">
-                        @foreach (var sub in capGroup.Items)
-                        {
-                            <li>
-                                @* <div><strong>@sub.SubControlID</strong></div> *@
-                                @if (IsGroupDescriptionVisible(capGroup.CapabilityName))
-                                {
-                                    <div class="mt-2 p-2 bg-light rounded">
-                                        @sub.SubcontrolDescription
-                                    </div>
-                                }
-                            </li>
-                        }
-                    </ul>
-                </RadzenAccordionItem>
-            }
-          </Items>
-        </RadzenAccordion>
-      </RadzenTabsItem>
-    }
-  </Tabs>
-</RadzenTabs>
-
-
-
-            }
-
-        <div style="margin-top: 1rem;">
-            <RadzenButton Text="Save" Click="SaveAssessment" ButtonStyle="ButtonStyle.Primary"
-                          Style="margin-right: 10px;"/>
-            <RadzenButton Text="Submit" Click="SubmitAssessment" ButtonStyle="ButtonStyle.Success"/>
+        <!-- save / submit -->
+        <div style="margin-top:1rem;">
+            <RadzenButton Text="Save"
+                          ButtonStyle="ButtonStyle.Primary"
+                          Click="SaveAssessment"
+                          Style="margin-right:10px;" />
+            <RadzenButton Text="Submit"
+                          ButtonStyle="ButtonStyle.Success"
+                          Click="SubmitAssessment" />
         </div>
-        @if (!string.IsNullOrEmpty(errorMessage))
+
+        @if (!string.IsNullOrWhiteSpace(errorMessage))
         {
-            <RadzenAlert Severity="AlertSeverity.Error" Text="@errorMessage" Style="margin-top:1rem;"/>
+            <RadzenAlert Severity="AlertSeverity.Error"
+                         Text="@errorMessage"
+                         Style="margin-top:1rem;" />
         }
     }
 </RadzenCard>
 
+<script>window.triggerClick = el => el && el.click();</script>
+
 @code {
     [Parameter] public string Id { get; set; }
+    
     private Assessment assessment;
     private string errorMessage;
     private RadzenDataGrid<GroupedPin> pinsGrid;
     private IEnumerable<GroupedPin> groupedPins;
     private List<GroupedCapabilitiesByCluster> groupedCapabilities;
-    private int currentTabIndex = 0;
-    private ElementReference imageContainer;
-
-    private Dictionary<string, bool> showDescriptions = new Dictionary<string, bool>();
+    private readonly Dictionary<string,bool> showGroupDescriptions = new();
+    private int currentTabIndex;
+    private InputFile hiddenFile;     
     
-    private Dictionary<string,bool> showGroupDescriptions = new();
-
-    private void ToggleGroupDescription(string capabilityName)
+    private class GroupedPin
     {
-        if (!showGroupDescriptions.TryGetValue(capabilityName, out var visible))
-            visible = false;
-        showGroupDescriptions[capabilityName] = !visible;
+        public string CapabilityName { get; set; }
+        public List<Pin> Pins         { get; set; }
     }
-
-    private bool IsGroupDescriptionVisible(string capabilityName)
-        => showGroupDescriptions.TryGetValue(capabilityName, out var visible) && visible;
     
-    private void ToggleDescription(string capId)
-    {
-        if (showDescriptions.ContainsKey(capId))
-        {
-            showDescriptions[capId] = !showDescriptions[capId];
-        }
-        else
-        {
-            showDescriptions[capId] = true;
-        }
-    }
-
-    private bool IsDescriptionVisible(string capId)
-    {
-        return showDescriptions.ContainsKey(capId) && showDescriptions[capId];
-    }
-
-
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            assessment   = await AssessmentService.GetAssessmentByIdAsync(Id);
-            
+            assessment = await AssessmentService.GetAssessmentByIdAsync(Id);
             ReassignPinNumbers();
             GroupPinsByCapability();
             GroupCapabilitiesByCluster();
         }
-        catch (Exception ex)
-        {
-            errorMessage = $"Error loading assessment: {ex.Message}";
-        }
+        catch (Exception ex) { errorMessage = ex.Message; }
     }
-
-    private void GroupCapabilitiesByCluster()
-    {
-        groupedCapabilities = CapabilityGrouper
-            .GroupByClusterThenName(assessment.Capabilities);
-    }
-
-    private void GroupPinsByCapability()
-    {
-        groupedPins = assessment.Pins
-            .GroupBy(p => p.CapabilityId)
-            .Select(g => new GroupedPin
-            {
-                CapabilityName = g.First().Capability.CapabilityName,
-                Pins = g.ToList()
-            })
-            .ToList();
-    }
+    
+    private async Task UploadSolutionDesign() =>
+        await JS.InvokeVoidAsync("triggerClick", hiddenFile.Element);
 
     private async Task HandleFileSelected(InputFileChangeEventArgs e)
     {
         try
         {
             var file = e.File;
-            if (file != null)
-            {
-                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.Name)}";
-                var filePath = Path.Combine("wwwroot", "uploads", fileName);
-                Directory.CreateDirectory(Path.GetDirectoryName(filePath));
-                using var stream = new FileStream(filePath, FileMode.Create);
-                await file.OpenReadStream().CopyToAsync(stream);
-                assessment.SolutionDesignImagePath = $"/uploads/{fileName}";
-            }
+            if (file is null) return;
+
+            var name = $"{Guid.NewGuid()}{Path.GetExtension(file.Name)}";
+            var path = Path.Combine("wwwroot","uploads",name);
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+
+            await using var fs = new FileStream(path,FileMode.Create);
+            await file.OpenReadStream().CopyToAsync(fs);
+            assessment.SolutionDesignImagePath = $"/uploads/{name}";
         }
-        catch (Exception ex)
-        {
-            errorMessage = $"Error uploading file: {ex.Message}";
-        }
+        catch (Exception ex) { errorMessage = $"Error uploading file: {ex.Message}"; }
     }
+    
+    private void GroupCapabilitiesByCluster() =>
+        groupedCapabilities = CapabilityGrouper.GroupByClusterThenName(assessment.Capabilities);
+
+    private void GroupPinsByCapability() =>
+        groupedPins = assessment.Pins
+            .GroupBy(p => p.CapabilityId)
+            .Select(g => new GroupedPin { CapabilityName = g.First().Capability.CapabilityName, Pins = g.ToList() })
+            .ToList();
 
     private async Task AddPinForCapability(Capability cap)
     {
-        var newPin = new Pin
-        {
-            Id = Guid.NewGuid().ToString(),
-            AssessmentId = assessment.Id,
-            CapabilityId = cap.Id,
-            Capability = cap,
-            X = 100,
-            Y = 100,
-            Width = 20,
-            Height = 20
-        };
-        assessment.Pins.Add(newPin);
+        var pin = new Pin{ Id = Guid.NewGuid().ToString(), AssessmentId = assessment.Id,
+                           CapabilityId = cap.Id, Capability = cap, X = 100, Y = 100, Width = 20, Height = 20 };
+        assessment.Pins.Add(pin);
         ReassignPinNumbers();
         GroupPinsByCapability();
         await pinsGrid.Reload();
-    }
-
-    private void UpdatePinPosition(Pin pin, (double X, double Y) coords)
-    {
-        pin.X = coords.X;
-        pin.Y = coords.Y;
     }
 
     private async Task RemovePin(Pin pin)
@@ -302,17 +251,27 @@
         await pinsGrid.Reload();
     }
 
+    private void UpdatePinPosition(Pin p,(double X,double Y) c){ p.X = c.X; p.Y = c.Y; }
+
+    private void ReassignPinNumbers()
+    {
+        for (int i = 0; i < assessment.Pins.Count; i++)
+            assessment.Pins[i].DisplayNumber = i + 1;
+    }
+
+    private void ToggleGroupDescription(string name) =>
+        showGroupDescriptions[name] = !IsGroupDescriptionVisible(name);
+
+    private bool IsGroupDescriptionVisible(string name) =>
+        showGroupDescriptions.TryGetValue(name,out var v) && v;
+
+    private void OnChange(int idx) => currentTabIndex = idx;
+    private void BackToAssessmentList() => NavigationManager.NavigateTo("/assessments",true);
+
     private async Task SaveAssessment()
     {
-        try
-        {
-            await AssessmentService.UpdateAssessmentAsync(assessment);
-            errorMessage = "Saved successfully.";
-        }
-        catch (Exception ex)
-        {
-            errorMessage = $"Error saving assessment: {ex.Message}";
-        }
+        try   { await AssessmentService.UpdateAssessmentAsync(assessment); errorMessage = "Saved."; }
+        catch (Exception ex) { errorMessage = ex.Message; }
     }
 
     private async Task SubmitAssessment()
@@ -320,170 +279,158 @@
         try
         {
             await AssessmentService.UpdateAssessmentAsync(assessment);
-            await AssessmentService.SubmitAssessmentAsync(assessment.Id, UserService.Email);
-            NavigationManager.NavigateTo("/assessments", forceLoad: true);
+            await AssessmentService.SubmitAssessmentAsync(assessment.Id,UserService.Email);
+            NavigationManager.NavigateTo("/assessments",true);
         }
-        catch (Exception ex)
-        {
-            errorMessage = $"Error submitting assessment: {ex.Message}";
-        }
+        catch (Exception ex) { errorMessage = ex.Message; }
     }
-
-    private void BackToAssessmentList()
-    {
-        NavigationManager.NavigateTo("/assessments", forceLoad: true);
-    }
-
-    private void ReassignPinNumbers()
-    {
-        for (int i = 0; i < assessment.Pins.Count; i++)
-        {
-            assessment.Pins[i].DisplayNumber = i + 1;
-        }
-    }
-
-
-    private void OnChange(int index)
-    {
-        currentTabIndex = index;
-    }
-
-    private class GroupedPin
-    {
-        public string CapabilityName { get; set; }
-        public List<Pin> Pins { get; set; }
-    }
-    
-
-    public record Size(int width, int height);
-
 }
 
 <style>
-    .pin-normal {
-        background-color: #002337;
-    }
+:root{ --indigo:#00436a; }
+.page-card{ max-width:1420px;margin:2rem auto;padding:1.4rem;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,.08); }
+.title-bar{ display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem; }
+.info-bar{ display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin:1.2rem 0;border:1px solid #e0e0e0;border-radius:8px;background:#f7f7f9;padding:1rem; }
+.info-bar>div{ display:flex;flex-direction:column;gap:.15rem; }
+.info-label{ font-size:.78rem;font-weight:700;color:#555; }
+.evidence-row{ display:flex;gap:1rem;overflow-x:auto; }
+.evidence-container{ position:relative;width:1000px;height:800px;border:1px solid #ccc;border-radius:8px; }
+.resizable-image{ position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain; }
+.pin-normal{ width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#2255ff;color:#fff;font-weight:700; }
+.pin-panel{ width:320px;height:800px;display:flex;flex-direction:column; }
+.pin-row{ display:flex;align-items:center;gap:.35rem;margin-bottom:.35rem; }
+.pin-no{ width:34px;text-align:right;font-weight:600; }
+.line-inputs{ display:flex;flex-wrap:wrap;gap:.75rem;margin-bottom:.75rem; }
+.rz-button.rz-primary.rz-shade-default{ background:var(--indigo); }
+.pin-normal {
+    background-color: #002337;
+}
 
-    .unselectable {
-        user-select: none;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        -o-user-select: none;
-    }
+.unselectable {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+}
 
-    .rz-button.rz-primary.rz-shade-default {
-        background-color: #00436a;
-    }
+.rz-button.rz-primary.rz-shade-default {
+    background-color: #00436a;
+}
 
-    .rz-button.rz-success.rz-shade-default {
-        background-color: #006db9;
-    }
+.rz-button.rz-success.rz-shade-default {
+    background-color: #006db9;
+}
 
-    .rz-button.rz-secondary.rz-shade-default {
-        background-color: #00436a;
-    }
+.rz-button.rz-secondary.rz-shade-default {
+    background-color: #00436a;
+}
 
-    .rz-button.rz-success {
-        background-color: #006db9;
-    }
+.rz-button.rz-success {
+    background-color: #006db9;
+}
 
-    .rz-button.rz-danger.rz-shade-default {
-        background-color: #f0f7fa;
-        color: black;
-    }
+.rz-button.rz-danger.rz-shade-default {
+    background-color: #f0f7fa;
+    color: black;
+}
 
-    .rz-button.rz-danger {
-        background-color: #f0f7fa;
-        color: black;
-    }
+.rz-button.rz-danger {
+    background-color: #f0f7fa;
+    color: black;
+}
 
-    .rz-tabview-title {
-        color: #00436a;
-    }
+.rz-tabview-title {
+    color: #00436a;
+}
 
-    .rz-tabview.rz-tabview-top > .rz-tabview-nav .rz-tabview-selected {
-        border-bottom: 2px solid #00436a;
-    }
+.rz-tabview.rz-tabview-top > .rz-tabview-nav .rz-tabview-selected {
+    border-bottom: 2px solid #00436a;
+}
 
-    :root {
-        --rz-on-primary-lighter: #00436a;
-        --rz-primary: #00436a;
-    }
-
-
-    .resizable-image {
-        display: block;
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-    }
-
-    .pin-normal {
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: #002337;
-        color: white;
-        font-weight: bold;
-        user-select: none;
-    }
-
-    .rz-datagrid-cell {
-        white-space: normal;
-        word-wrap: break-word;
-    }
+:root {
+    --rz-on-primary-lighter: #00436a;
+    --rz-primary: #00436a;
+}
 
 
-    .unselectable {
-        user-select: none;
-    }
+.resizable-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
 
-    .rz-datagrid-cell           { white-space: normal; word-wrap: break-word; }
+.pin-normal {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #002337;
+    color: white;
+    font-weight: bold;
+    user-select: none;
+}
 
-    /* optional: distribute pin‑number + icon more neatly */
-    .pin-row                    { display:flex; align-items:center; }
-    .pin-no  {             /* fixed width so 1‑digit and 2‑digit values align */
-        display:inline-block;
-        width:42px;          /* tweak if you need more/less room */
-        text-align:right;
-        margin-right:4px;
-    }
+.rz-datagrid-cell {
+    white-space: normal;
+    word-wrap: break-word;
+}
 
-    .evidence-row {
-        display: flex;
-        gap: 1rem;          /* 16 px */
-        flex-wrap: nowrap;  /* NEVER wrap to the next line        */
-        overflow-x: auto;   /* show a scrollbar instead of wrapping */
-    }
 
-    /* picture frame – whatever canonical size you decided */
-    .evidence-container {
-        position: relative;
-        width: 1000px;      /* or 1200px – same number on both pages */
-        height: 800px;
-        border: 1px solid #ccc;
-        box-sizing: border-box;
-    }
-    .evidence-container img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-    }
+.unselectable {
+    user-select: none;
+}
 
-    /* pin list – unchanged size */
-    .pin-panel {
-        width: 320px;
-        height: 800px;      /* match picture height so pins align */
-        display: flex;
-        flex-direction: column;
-    }
+.rz-datagrid-cell           { white-space: normal; word-wrap: break-word; }
 
-    .line-inputs {
-        gap: 1rem;          /* horizontal breathing-room between every item        */
-    }
+.pin-row                    { display:flex; align-items:center; }
+.pin-no  {            
+    display:inline-block;
+    width:42px;          
+    text-align:right;
+    margin-right:4px;
+}
+
+.evidence-row {
+    display: flex;
+    gap: 1rem;        
+    flex-wrap: nowrap;  
+    overflow-x: auto;   
+}
+
+
+.evidence-container {
+    position: relative;
+    width: 1000px;      
+    height: 800px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+}
+.evidence-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+
+.pin-panel {
+    width: 320px;
+    height: 800px;      
+    display: flex;
+    flex-direction: column;
+}
+
+.line-inputs {
+    gap: 1rem;         
+}
+
+.info-bar{ display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+    gap:1rem;margin:1.4rem 0;border:1px solid #e0e0e0;border-radius:8px;
+    background: #EBEBE6 ;padding:1rem; }
+.info-bar>div{ display:flex;flex-direction:column;gap:.15rem; }
+.info-label{ font-size:.78rem;font-weight:700;color:#555; }
+
 </style>
-

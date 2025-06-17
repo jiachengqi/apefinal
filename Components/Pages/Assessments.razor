@@ -4,10 +4,19 @@
 @inject UserService UserService
 @inject NavigationManager NavigationManager
 
-<div class="rz-main-container">
-    <RadzenButton Text="Home" Click="BackToHome" ButtonStyle="ButtonStyle.Light" />
-    <RadzenHeading Size="H3" Text="My Assessments" />
-    <RadzenButton Text="Create New Assessment" Click="CreateNewAssessment" ButtonStyle="ButtonStyle.Primary" Style="margin-bottom: 1rem;" />
+<div class="page-container">
+    
+    <div class="title-bar">
+        <RadzenButton Text="Home"
+                      Click="BackToHome"
+                      ButtonStyle="ButtonStyle.Light" />
+        
+
+        <RadzenButton Text="Create New Assessment"
+                      Click="CreateNewAssessment"
+                      ButtonStyle="ButtonStyle.Primary" />
+    </div>
+    
     @if (string.IsNullOrEmpty(UserService.Email))
     {
         <RadzenAlert Severity="AlertSeverity.Warning" Text="Please log in first." />
@@ -18,15 +27,17 @@
     }
     else
     {
-        if (assessments != null)
+        @if (assessments?.Any(a => a.Status == "Draft") == true)
         {
-            <RadzenCard Style="margin-bottom: 1rem;">
+            <RadzenCard class="data-card">
                 <RadzenHeading Size="H4" Text="Active Assessments" />
-                <RadzenDataGrid TItem="Assessment" Data="@assessments.Where(a => a.Status == "Draft")" Style="margin-top: 1rem;">
+                <RadzenDataGrid TItem="Assessment"
+                                Data="@assessments.Where(a => a.Status == "Draft")"
+                                Style="margin-top:1rem;">
                     <Columns>
                         <RadzenDataGridColumn TItem="Assessment" Title="ID">
                             <Template Context="assessment">
-                                @assessment.Id.Substring(0, 3)
+                                @assessment.Id[..3]
                             </Template>
                         </RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="Assessment" Property="AssessmentType" Title="Type" />
@@ -38,19 +49,28 @@
                         </RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="Assessment" Title="Actions">
                             <Template Context="assessment">
-                                <RadzenButton Text="Edit" Click="@(args => EditAssessment(assessment.Id))" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
+                                <RadzenButton Text="Edit"
+                                              Click="@(args => EditAssessment(assessment.Id))"
+                                              ButtonStyle="ButtonStyle.Primary"
+                                              Size="ButtonSize.Small" />
                             </Template>
                         </RadzenDataGridColumn>
                     </Columns>
                 </RadzenDataGrid>
             </RadzenCard>
-            <RadzenCard>
+        }
+        
+        @if (assessments?.Any(a => a.Status != "Draft") == true)
+        {
+            <RadzenCard class="data-card">
                 <RadzenHeading Size="H4" Text="Submitted Assessments" />
-                <RadzenDataGrid TItem="Assessment" Data="@assessments.Where(a => a.Status != "Draft")" Style="margin-top: 1rem;">
+                <RadzenDataGrid TItem="Assessment"
+                                Data="@assessments.Where(a => a.Status != "Draft")"
+                                Style="margin-top:1rem;">
                     <Columns>
                         <RadzenDataGridColumn TItem="Assessment" Title="ID">
                             <Template Context="assessment">
-                                @assessment.Id.Substring(0, 3)
+                                @assessment.Id[..3]
                             </Template>
                         </RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="Assessment" Property="AssessmentType" Title="Type" />
@@ -58,17 +78,20 @@
                         <RadzenDataGridColumn TItem="Assessment" Property="Status" Title="Status" />
                         <RadzenDataGridColumn TItem="Assessment" Title="Submitted At">
                             <Template Context="assessment">
-                                @assessment.SubmittedAt?.ToString("yyyy-MM-dd")
+                                @assessment.SubmittedAt:yyyy-MM-dd
                             </Template>
                         </RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="Assessment" Title="Duration">
                             <Template Context="assessment">
-                                @((int)(assessment.SubmittedAt - assessment.CreateAt).Value.TotalHours) hours
+                                @((int)(assessment.SubmittedAt - assessment.CreateAt)?.TotalHours) h
                             </Template>
                         </RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="Assessment" Title="Actions">
                             <Template Context="assessment">
-                                <RadzenButton Text="Review" Click="@(args => EditAssessment(assessment.Id))" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
+                                <RadzenButton Text="Review"
+                                              Click="@(args => EditAssessment(assessment.Id))"
+                                              ButtonStyle="ButtonStyle.Primary"
+                                              Size="ButtonSize.Small" />
                             </Template>
                         </RadzenDataGridColumn>
                     </Columns>
@@ -79,36 +102,58 @@
 </div>
 
 @code {
-    private List<Assessment> assessments;
-    
+    private List<Assessment>? assessments;
+
     protected override async Task OnInitializedAsync()
     {
         if (UserService.Role == "Requester")
         {
             assessments = await AssessmentService.GetAssessmentsByEmailAsync(UserService.Email);
+            if (assessments.Count == 0)
+            {
+                NavigationManager.NavigateTo("/create-assessment", true);
+            }
         }
     }
-    
-    private void CreateNewAssessment() => NavigationManager.NavigateTo("/create-assessment", true);
-    
+
+    private void CreateNewAssessment() =>
+        NavigationManager.NavigateTo("/create-assessment", true);
+
     private async Task EditAssessment(string id)
     {
-        var assessment = await AssessmentService.GetAssessmentByIdAsync(id);
-        if (assessment.Status != "Validated" && assessment.Status != "Rejected" && assessment.Status != "Submitted" && assessment.Status != "UnderReview")
-        {
-            NavigationManager.NavigateTo($"/edit-assessment/{id}", true);
-        }
-        else
-        {
-            NavigationManager.NavigateTo($"/review-assessment/{id}", true);
-        }
+        var a = await AssessmentService.GetAssessmentByIdAsync(id);
+        var readOnly = new[] { "Validated", "Rejected", "Submitted", "UnderReview" }.Contains(a.Status);
+        NavigationManager.NavigateTo(readOnly ? $"/review-assessment/{id}"
+                                              : $"/edit-assessment/{id}", true);
     }
-    
+
     private void BackToHome() => NavigationManager.NavigateTo("/", true);
 }
 
 <style>
-.rz-button.rz-primary.rz-shade-default {
-        background-color: #00436a;
-    }
+.page-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.title-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.title-text { margin: 0; }
+
+.data-card {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+}
+
+.rz-button.rz-primary.rz-shade-default   { background: #00436a; }
+.rz-button.rz-light.rz-shade-default     { background: #e5e7eb; color: #111827; }
+
+.data-card .rz-heading { font-weight: 600; }
 </style>

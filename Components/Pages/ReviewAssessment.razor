@@ -1,364 +1,324 @@
 ﻿@page "/review-assessment/{id}"
 @using System.Linq
-@inject AssessmentService AssessmentService
-@inject UserService UserService
-@inject NavigationManager NavigationManager
+@inject AssessmentService  AssessmentService
+@inject UserService        UserService
+@inject NavigationManager  NavigationManager
 @rendermode InteractiveServer
 
-<RadzenCard Style="max-width: 1400px; margin: 2rem auto; padding: 1rem;">
-    <RadzenButton Text="Back" Click="BackToAssessmentList" ButtonStyle="ButtonStyle.Light" />
-    @if (assessment != null)
-    {
-    <RadzenHeading Size="H3" Text=@($"Assessment ID {assessment.Id.Substring(0, 3)} for Application {assessment.ApplicationID} Criticality {assessment.Criticality}")
-                   style="font-weight: bold; color: #FFFFFF; padding: 10px 20px; margin: 10px 0; text-align: center; background-color: #00436a;" />
-    <div style="margin-top: 1rem; padding: 10px; background-color: #f5f5f5; border-radius: 5px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);">
-        <RadzenLabel Text="Assessment Type:" style="font-weight: bold; color: #333; margin-bottom: 5px;" />
-        <RadzenTextBox Value="@assessment.AssessmentType" ReadOnly="true" Style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background-color: #fff;" />
-    </div>
-    
-    @if (!string.IsNullOrEmpty(assessment.SolutionDesignImagePath))
-    {
-    <div class="evidence-container">
-        <img src="@assessment.SolutionDesignImagePath"/>
-        @foreach (var pin in assessment.Pins)
-        {
-        @if ((HoverPin != null && HoverPin.CapabilityId == pin.CapabilityId) || (selectedCapability != null && pin.Capability == selectedCapability))
-        {
-        backgroundColor = "transparent";
-        border = "2px solid #FF9900";
-        opacity = "1";
-        }
-        else
-        {
-        backgroundColor = "#6c757d";
-        opacity = "1";
-        border = "none";
-        }
+<RadzenCard Style="max-width:1450px;margin:2rem auto;padding:1rem;">
+    <RadzenButton Text="Back" ButtonStyle="ButtonStyle.Light" Click="BackToAssessmentList" />
 
-        @if ((HoverPin != null && HoverPin.CapabilityId != pin.CapabilityId) || (selectedCapability != null && pin.Capability != selectedCapability))
-        {
-        backgroundColor = "#dcdcdc";
-        opacity = ".35";
-        border = "none";
-        }
-
-        <div style="position: absolute; left:@(pin.X)px; top:@(pin.Y)px; width:@(pin.Width)px; height:@(pin.Height)px; background-color:@backgroundColor; border:@border; opacity:@opacity;border-radius:50%; cursor:default;"
-             @onpointerover="() => HoverPin = pin"
-             @onpointerout="() => HoverPin = null">
+    @if (assessment is not null)
+    {
+        <div class="info-bar">
+            <div><span class="info-label">Assessment&nbsp;ID</span><span>@assessment.Id</span></div>
+            <div><span class="info-label">Application&nbsp;ID</span><span>@assessment.ApplicationID</span></div>
+            <div><span class="info-label">Type</span><span>@assessment.AssessmentType</span></div>
+            <div><span class="info-label">Criticality</span><span>@assessment.Criticality</span></div>
         </div>
-        }
-        @if (HoverPin != null)
+
+        @if (!string.IsNullOrEmpty(assessment.SolutionDesignImagePath))
         {
-        <div style="position: absolute; left:@(HoverPin.X + TooltipOffsetX)px; top:@(HoverPin.Y - TooltipOffsetY)px; background-color:black; color:white; padding:4px 8px; border-radius:4px; pointer-events:none; white-space:nowrap;">
-            @HoverPin.Capability?.CapabilityName
-        </div>
-        }
-    </div>
-    }
+            <div class="evidence-container">
+                <img src="@assessment.SolutionDesignImagePath" />
+                @foreach (var p in assessment.Pins)
+                {
+                    var hot  = (HoverPin?.CapabilityId == p.CapabilityId) || (selectedCapability == p.Capability);
+                    var fade = (HoverPin != null && HoverPin.CapabilityId != p.CapabilityId) ||
+                               (selectedCapability != null && selectedCapability != p.Capability);
 
-    <RadzenHeading Size="H4" Text="Capabilities" Style="margin-top:1rem;" />
-    
-    <RadzenRow Style="margin-bottom:1rem; gap:0.5rem;">
-        <RadzenColumn Width="6">
-            <RadzenTextBox Placeholder="Search capabilities, evidence…" Style="width:100%;" @bind-Value="globalSearch" Change="@OnFilterChanged">
-                <Template>
-                    <RadzenIcon Icon="search" Style="margin-left:8px;" />
-                </Template>
-            </RadzenTextBox>
-        </RadzenColumn>
-        <RadzenColumn Width="4">
-            <RadzenDropDown TValue="string" Data="@subcontrolOptions" Placeholder="Find Sub Contrl ID" AllowClear="true" Style="width:100%;" 
-                            AllowFiltering="true"
-                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                            FilterOperator="StringFilterOperator.Contains"
-                            SearchPlaceholder="Type to search…" @bind-Value="selectedSubCtrl" Change="@OnFilterChanged" />
-        </RadzenColumn>
-    </RadzenRow>
+                    var bg  = hot ? "transparent" : fade ? "#dcdcdc" : "#6c757d";
+                    var brd = hot ? "2px solid #FF9900" : "none";
+                    var op  = fade ? ".35" : "1";
 
-    <div style="flex:1 1 auto; max-height:600px; overflow:auto;">
-        <RadzenDataGrid TItem="ReviewRow"
-                        Data="@filteredRows"
-                        Style="width:100%;"
-                        AllowSorting="true">
-            <Columns>
-                <RadzenDataGridColumn TItem="ReviewRow" Title="SubCtrl" Width="160px" Sortable="false">
-                    <Template Context="row">
-                        @{
-                        capabilityLookup.TryGetValue(row.CapabilityName, out var cap);
-                        var css = cap == HoverPin?.Capability || cap == selectedCapability ? "hl" : "";
-                        }
-                        <div class="cap-cell @css"
-                             @onmouseover="() => { if(cap!=null) SelectCapability(cap); }"
-                             @onmouseout="ResetSelection">
-                            @foreach (var id in row.SubControlIds)
-                            {
-                            <div>@id</div>
-                            }
-                        </div>
-                    </Template>
-                </RadzenDataGridColumn>
+                    <div style="
+                 position:absolute;
+                 left:@($"{p.X}px");
+                 top:@($"{p.Y}px");
+                 width:@($"{p.Width}px");
+                 height:@($"{p.Height}px");
+                 background-color:@bg;
+                 border:@brd;
+                 opacity:@op;
+                 border-radius:50%;"
+                         @onpointerover="() => HoverPin = p"
+                         @onpointerout ="() => HoverPin = null" />
+                }
 
-                <RadzenDataGridColumn TItem="ReviewRow" Property="CapabilityName" Title="Capability" Width="260px" Sortable="true">
-                    <Template Context="row">
-                        @{
-                        capabilityLookup.TryGetValue(row.CapabilityName, out var cap);
-                        var css = cap == HoverPin?.Capability || cap == selectedCapability ? "hl" : "";
-                        }
-                        <span class="cap-cell @css"
-                              @onmouseover="() => { if(cap!=null) SelectCapability(cap); }"
-                              @onmouseout="ResetSelection">
-                                @row.CapabilityName
-                            </span>
-                    </Template>
-                </RadzenDataGridColumn>
-
-                <RadzenDataGridColumn TItem="ReviewRow" Property="Checked" Title="Fulfilment" Width="95px" Sortable="true">
-                    <Template Context="row">
-                        @{
-                        capabilityLookup.TryGetValue(row.CapabilityName, out var cap);
-                        var css = cap == HoverPin?.Capability || cap == selectedCapability ? "hl" : "";
-                        }
-                        <span class="cap-cell @css"
-                              @onmouseover="() => { if(cap!=null) SelectCapability(cap); }"
-                              @onmouseout="ResetSelection">
-                                @row.Checked
-                            </span>
-                    </Template>
-                </RadzenDataGridColumn>
-
-                <RadzenDataGridColumn TItem="ReviewRow" Property="Evidence" Title="Evidence" Sortable="false">
-                    <Template Context="row">
-                        @{
-                            capabilityLookup.TryGetValue(row.CapabilityName, out var cap);
-                            var css        = cap == HoverPin?.Capability || cap == selectedCapability ? "hl" : "";
-                            var isExpanded = expandedRows.Contains(row);
-
-                            // decide what text to show
-                            var textToShow = row.Evidence;
-                            if (!isExpanded && !string.IsNullOrEmpty(row.Evidence) &&
-                                row.Evidence.Length > EvidencePreviewLength)
-                            {
-                                textToShow = row.Evidence.Substring(0, EvidencePreviewLength) + "…";
-                            }
-                        }
-
-                        <div class="evidence-box cap-cell @css"
-                             @onmouseover="() => { if (cap != null) SelectCapability(cap); }"
-                             @onmouseout="ResetSelection">
-                            @textToShow
-
-                            @if (!string.IsNullOrEmpty(row.Evidence) &&
-                                 row.Evidence.Length > EvidencePreviewLength)
-                            {
-                                <a href="#"
-                                   @onclick="(MouseEventArgs _) => ToggleExpansion(row)"
-                                   @onclick:preventDefault="true">
-                                    @(isExpanded ? "Show less" : "Show more")
-                                </a>
-                            }
-                        </div>
-                    </Template>
-                </RadzenDataGridColumn>
-            </Columns>
-        </RadzenDataGrid>
-    </div>
-    
-    @if (assessment.Status != "Validated" && assessment.Status != "Rejected" && UserService.Role != "Requester")
-    {
-    <div style="margin-top: 1rem;">
-        <RadzenLabel Text="Justification:" />
-        <RadzenTextArea @bind-Value="justification" Style="width: 100%;" />
-    </div>
-    <div style="margin-top: 1rem;">
-        <RadzenButton Text="Validate" Click="AcceptAssessment" ButtonStyle="ButtonStyle.Primary" Style="margin-right: 10px;" />
-        <RadzenButton Text="Reject" Click="RejectAssessment" ButtonStyle="ButtonStyle.Danger" />
-    </div>
-    }
-    @if (assessment.Status == "Validated" || assessment.Status == "Rejected")
-    {
-    @if (assessment.Justification != null)
-    {
-        <div style="margin-top:1rem;">
-            <RadzenLabel Text="Justification:" />
-            
-            <div class="justification-view">
-                @assessment.Justification
+                @if (HoverPin is not null)
+                {
+                    <div class="pin-tooltip"
+                         style="left:@(HoverPin.X + 35)px;top:@(HoverPin.Y - 20)px;">
+                        @HoverPin.Capability?.CapabilityName
+                    </div>
+                }
             </div>
+        }
+        <!-- filters -->
+        <RadzenRow Style="margin:1rem 0;gap:.5rem;">
+            <RadzenColumn Width="6">
+                <RadzenTextBox Style="width:100%;" Placeholder="Search capability, evidence…"
+                               @bind-Value="search" Change="@(_=>StateHasChanged())">
+                    <Template><RadzenIcon Icon="search" Style="margin-left:8px;" /></Template>
+                </RadzenTextBox>
+            </RadzenColumn>
+            <RadzenColumn Width="4">
+                <RadzenDropDown TValue="string" Data="@subCtrlOpts" AllowFiltering="true" AllowClear="true"
+                                Placeholder="Find SubCtrl ID" Style="width:100%;"
+                                @bind-Value="selectedSub" Change="@(_=>StateHasChanged())" />
+            </RadzenColumn>
+        </RadzenRow>
+        
+        @if (rowsWithNotes.Any())
+        {
+            <RadzenHeading Size="H5" Text="Capabilities with Reviewer Notes" Style="color:#c62828;margin:0.5rem 0;" />
+
+            <RadzenDataGrid TItem="RRow" Data="@rowsWithNotes"
+                            ExpandMode="DataGridExpandMode.Single"
+                            AllowSorting="true"
+                            Class="flagged-grid"
+                            Style="width:100%;">
+                <Columns>
+                    <RadzenDataGridColumn TItem="RRow" Property="Cluster" Title="Cluster" Width="165px" />
+                    <RadzenDataGridColumn TItem="RRow" Title="SubCtrl" Width="150px">
+                        <Template Context="r">
+                            @foreach (var id in r.SubCtrls)
+                            {
+                                <div class="cap-cell" @onmouseover="() => Hover(r.CapName)" @onmouseout="ClearHover">@id</div>
+                            }
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RRow" Title="Capability" Width="300px">
+                        <Template Context="r">
+                            <div class="cap-cell long-text" @onmouseover="() => Hover(r.CapName)" @onmouseout="ClearHover">@r.CapName</div>
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RRow" Property="Checked" Title="Fulfilment" Width="110px" />
+                    <RadzenDataGridColumn TItem="RRow" Title="Evidence">
+                        <Template Context="r">
+                            <div class="cap-cell long-text" @onmouseover="() => Hover(r.CapName)" @onmouseout="ClearHover">@r.Evidence</div>
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+
+                <Template Context="r">
+                    @if (assessment.Status == "UnderReview")
+                    {
+                        @if (r.ShowComment)
+                        {
+                            <RadzenTextArea Style="width:100%;min-height:90px"
+                                            @bind-Value="r.Comment"
+                                            Change="args => OnCommentChanged(r, args)" />
+                            <RadzenButton Icon="close"
+                                          ButtonStyle="ButtonStyle.Secondary"
+                                          Size="ButtonSize.Small"
+                                          Style="margin-top:4px;"
+                                          Click="() => r.ShowComment = false" />
+                        }
+                        else
+                        {
+                            <RadzenButton Icon="comment"
+                                          ButtonStyle="ButtonStyle.Secondary"
+                                          Size="ButtonSize.Small"
+                                          Click="() => r.ShowComment = true" />
+                        }
+                    }
+                    else
+                    {
+                        <div class="comment-readonly">@(!string.IsNullOrWhiteSpace(r.Comment) ? r.Comment : "-")</div>
+                    }
+                </Template>
+            </RadzenDataGrid>
+        }
+
+        <div class="cluster-grids">   
+        @foreach (var grp in rowsPlain.GroupBy(r => r.Cluster).OrderBy(g => g.Key))
+        {
+            <RadzenHeading Size="H5" Text="@grp.Key" Style="color:#00436a;margin:1rem 0 0.4rem;" />
+
+            <RadzenDataGrid TItem="RRow" Data="@grp.ToList()" AllowSorting="true" Style="width:100%;" Class="cluster-grid">
+                <Columns>
+                    <RadzenDataGridColumn TItem="RRow" Title="SubCtrl" Width="150px" >
+                        <Template Context="r">
+                            @foreach (var id in r.SubCtrls)
+                            {
+                                <div class="cap-cell" @onmouseover="() => Hover(r.CapName)" @onmouseout="ClearHover">@id</div>
+                            }
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RRow" Title="Capability">
+                        <Template Context="r">
+                            <div class="cap-cell long-text" @onmouseover="() => Hover(r.CapName)" @onmouseout="ClearHover">@r.CapName</div>
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn TItem="RRow" Property="Checked" Title="Fulfilment" Width="110px" />
+                    <RadzenDataGridColumn TItem="RRow" Title="Evidence">
+                        <Template Context="r">
+                            <div class="cap-cell long-text" @onmouseover="() => Hover(r.CapName)" @onmouseout="ClearHover">@r.Evidence</div>
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGrid>
+            
+        }
         </div>
-    }
-    }
-    @if (!string.IsNullOrEmpty(errorMessage))
-    {
-    <RadzenAlert Severity="AlertSeverity.Error" Text="@errorMessage" Style="margin-top:1rem;" />
-    }
+        
+        @if (assessment.Status is not ("Validated" or "Rejected") && UserService.Role!="Requester")
+        {
+            <div style="margin-top:1rem;">
+                <RadzenLabel Text="Justification:" />
+                <RadzenTextArea @bind-Value="justification" Style="width:100%;" />
+            </div>
+            <div style="margin-top:1rem;">
+                <RadzenButton Text="Validate" ButtonStyle="ButtonStyle.Primary" Style="margin-right:10px;"
+                              Click="Accept" />
+                <RadzenButton Text="Reject"   ButtonStyle="ButtonStyle.Danger"
+                              Click="Reject" />
+            </div>
+        }
+
+        @if ((assessment.Status=="Validated" || assessment.Status=="Rejected") && !string.IsNullOrWhiteSpace(assessment.Justification))
+        {
+            <RadzenHeading Size="H5" Text="Reviewer Justification" Style="margin-top:1rem;" />
+            <div class="justification-view">@assessment.Justification</div>
+        }
+
+        @if (!string.IsNullOrEmpty(errorMsg))
+        {
+            <RadzenAlert Severity="AlertSeverity.Error" Text="@errorMsg" Style="margin-top:1rem;" />
+        }
     }
 </RadzenCard>
 
 @code {
-[Parameter] public string Id { get; set; }
-private Assessment assessment;
-private string justification;
-private string errorMessage;
-private string backgroundColor;
-private string border;
-private Pin HoverPin;
-private int TooltipOffsetX = 35;
-private int TooltipOffsetY = 20;
-private Capability? selectedCapability;
-private string opacity;
+    private class RRow
+    {
+        public string Cluster { get; init; }
+        public List<string> SubCtrls { get; init; }
+        public string CapName { get; init; }
+        public string Checked { get; init; }
+        public string Evidence { get; init; }
+        public string Comment { get; set; }
+        public bool   ShowComment { get; set; } 
+    }
+    
+    [Parameter] public string Id { get; set; }
 
-private const int EvidencePreviewLength = 120;          
-private HashSet<ReviewRow> expandedRows = new();
+    private Assessment assessment;
+    private string justification;
+    private string errorMsg;
+    
+    private Pin HoverPin;
+    private Capability selectedCapability;
+    private void Hover(string cap) => selectedCapability = capDict.TryGetValue(cap, out var c) ? c : null;
+    private void ClearHover()      => selectedCapability = null;
+    
+    private string search = "";
+    private string selectedSub;
+    private List<string> subCtrlOpts = new();
 
-// --- Filtering state ---
-private string globalSearch = string.Empty;
-private string selectedSubCtrl;
-private List<string> subcontrolOptions = new();
+    private List<RRow> rows = new();
+    private Dictionary<string,Capability> capDict = new(StringComparer.OrdinalIgnoreCase);
 
-private record ReviewRow(
-IReadOnlyList<string> SubControlIds,
-string CapabilityName,
-string Checked,
-string Evidence);
+    private IEnumerable<RRow> filtered =>
+        rows.Where(r =>
+            (string.IsNullOrWhiteSpace(search)
+             || r.CapName.Contains(search, StringComparison.OrdinalIgnoreCase)
+             || r.Checked.Contains(search, StringComparison.OrdinalIgnoreCase)
+             || r.Evidence.Contains(search, StringComparison.OrdinalIgnoreCase)
+             || r.SubCtrls.Any(id => id.Contains(search, StringComparison.OrdinalIgnoreCase)))
+            && (string.IsNullOrEmpty(selectedSub) || r.SubCtrls.Contains(selectedSub)));
 
-private Dictionary<string, Capability> capabilityLookup = new(StringComparer.OrdinalIgnoreCase);
-private IReadOnlyList<ReviewRow> reviewRows = Array.Empty<ReviewRow>();
+    private IEnumerable<RRow> rowsWithNotes => filtered.Where(r => !string.IsNullOrWhiteSpace(r.Comment));
+    private IEnumerable<RRow> rowsPlain     => filtered.Where(r =>  string.IsNullOrWhiteSpace(r.Comment));
+    
+    protected override async Task OnInitializedAsync()
+    {
+        assessment = await AssessmentService.GetAssessmentByIdAsync(Id);
 
-private IReadOnlyList<ReviewRow> filteredRows => reviewRows
-.Where(r => (string.IsNullOrWhiteSpace(globalSearch) ||
-r.CapabilityName.Contains(globalSearch, StringComparison.OrdinalIgnoreCase) ||
-r.Checked.Contains(globalSearch, StringComparison.OrdinalIgnoreCase) ||
-r.Evidence.Contains(globalSearch, StringComparison.OrdinalIgnoreCase) ||
-r.SubControlIds.Any(id => id.Contains(globalSearch, StringComparison.OrdinalIgnoreCase))) &&
-(string.IsNullOrEmpty(selectedSubCtrl) || r.SubControlIds.Contains(selectedSubCtrl)))
-.ToList();
+        if (UserService.Role=="Reviewer" && assessment.Status=="Submitted")
+        {
+            assessment.Status        = "UnderReview";
+            assessment.StartReviewBy = UserService.Email;
+            assessment.StartReviewAt = DateTime.UtcNow;
+            await AssessmentService.UpdateAssessmentAsync(assessment);
+        }
 
-void ToggleExpansion(ReviewRow row)
-{
-    if (expandedRows.Contains(row))
-        expandedRows.Remove(row);
-    else
-        expandedRows.Add(row);
-}
+        rows = assessment.Capabilities
+               .Select(c => new RRow
+               {
+                   Cluster   = c.Cluster ?? "",
+                   SubCtrls  = new[]{c.SubControlID}.Where(x=>x!=null).ToList(),
+                   CapName   = c.CapabilityName ?? "",
+                   Checked   = c.Checked  ?? "",
+                   Evidence  = c.Evidence ?? "",
+                   Comment   = c.ReviewerComment,
+                   ShowComment = false
+               })
+               .ToList();
 
+        capDict = assessment.Capabilities
+                   .GroupBy(c=>c.CapabilityName ?? "",StringComparer.OrdinalIgnoreCase)
+                   .ToDictionary(g=>g.Key,g=>g.First(),StringComparer.OrdinalIgnoreCase);
 
-protected override async Task OnInitializedAsync()
-{
-assessment = await AssessmentService.GetAssessmentByIdAsync(Id);
+        subCtrlOpts = rows.SelectMany(r=>r.SubCtrls).Distinct().OrderBy(x=>x).ToList();
+    }
+    
+    private void OnCommentChanged(RRow row, object _)
+    {
+        if (capDict.TryGetValue(row.CapName, out var cap))
+            cap.ReviewerComment = row.Comment?.Trim();
+    }
 
-if (UserService.Role == "Reviewer")
-{
-if (assessment.Status != "UnderReview" && assessment.Status != "Validated" && assessment.Status != "Rejected")
-{
-assessment.Status = "UnderReview";
-assessment.StartReviewBy = UserService.Email;
-assessment.StartReviewAt = DateTime.UtcNow;
-await AssessmentService.UpdateAssessmentAsync(assessment);
-}
-}
+    private async Task Accept()
+    {
+        await AssessmentService.UpdateAssessmentAsync(assessment);
+        await AssessmentService.ReviewAssessmentAsync(Id,UserService.Email,string.Empty,true);
+        NavigationManager.NavigateTo("/review",true);
+    }
 
-reviewRows = assessment.Capabilities
-.GroupBy(c => (c.CapabilityName ?? string.Empty).Trim(), StringComparer.OrdinalIgnoreCase)
-.Select(g => new ReviewRow(
-SubControlIds: g.Select(x => x.SubControlID).Distinct().OrderBy(id => id).ToList(),
-CapabilityName: g.Key,
-Checked: g.First().Checked ?? string.Empty,
-Evidence: g.First().Evidence ?? string.Empty))
-.ToList();
+    private async Task Reject()
+    {
+        if (string.IsNullOrWhiteSpace(justification)){errorMsg="Justification required";return;}
+        await AssessmentService.UpdateAssessmentAsync(assessment);
+        await AssessmentService.ReviewAssessmentAsync(Id,UserService.Email,justification,false);
+        NavigationManager.NavigateTo("/review",true);
+    }
 
-capabilityLookup = assessment.Capabilities
-.GroupBy(c => (c.CapabilityName ?? string.Empty).Trim(), StringComparer.OrdinalIgnoreCase)
-.ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
-
-// Distinct SubControl IDs for dropdown filter
-subcontrolOptions = reviewRows.SelectMany(r => r.SubControlIds).Distinct().OrderBy(id => id).ToList();
-}
-
-private void OnFilterChanged(object value) => StateHasChanged();
-
-private async Task AcceptAssessment()
-{
-await AssessmentService.ReviewAssessmentAsync(Id, UserService.Email, string.Empty, true);
-NavigationManager.NavigateTo("/review", true);
-}
-
-private void BackToAssessmentList()
-{
-NavigationManager.NavigateTo(UserService.Role == "Requester" ? "/assessments" : "/review", true);
-}
-
-private async Task RejectAssessment()
-{
-if (string.IsNullOrEmpty(justification))
-{
-errorMessage = "Justification is required";
-return;
-}
-
-await AssessmentService.ReviewAssessmentAsync(Id, UserService.Email, justification, false);
-NavigationManager.NavigateTo("/review", true);
-}
-
-void SelectCapability(Capability capability)
-{
-selectedCapability = capability;
-}
-
-void ResetSelection() => selectedCapability = null;
+    private void BackToAssessmentList() =>
+        NavigationManager.NavigateTo(UserService.Role=="Requester"?"/assessments":"/review",true);
 }
 
 <style>
-    .rz-button.rz-primary.rz-shade-default {
-        background-color: #00436a;
-    }
+:root{--rz-primary:#00436a;}
 
-    .rz-button.rz-danger.rz-shade-default,
-    .rz-button.rz-danger {
-        background-color: #f0f7fa;
-        color: black;
-    }
+.summary-box{margin-top:1rem;padding:10px;background:#f5f5f5;border-radius:5px;box-shadow:0 2px 4px rgba(0,0,0,.1);}
+.evidence-container{position:relative;width:1000px;height:800px;border:1px solid #ccc;margin-top:1rem;}
+.evidence-container img{width:100%;height:100%;object-fit:contain;}
+.pin-tooltip{position:absolute;background:#000;color:#fff;padding:4px 8px;border-radius:4px;font-size:.8rem;white-space:nowrap;pointer-events:none;}
 
-    :root {
-        --rz-on-primary-lighter: #00436a;
-        --rz-primary: #00436a;
-    }
+.long-text{white-space:pre-wrap;word-break:break-word;}
+.comment-readonly{white-space:pre-wrap;word-break:break-word;padding:8px 4px;}
+.justification-view{white-space:pre-wrap;word-break:break-word;padding:10px;border:1px solid #ddd;border-radius:4px;background:#fff;}
 
-    .evidence-container {
-        position: relative;
-        width: 1000px;
-        height: 800px;
-        border: 1px solid #ccc;
-        box-sizing: border-box;
-    }
+.cap-cell:hover{background:rgba(255,248,225,.6);}
+.flagged-grid .rz-datagrid-cell{background:#fff7e6;}
+.flagged-grid .rz-datagrid-header{background:#ffe0b2;font-weight:600;}
 
-    .evidence-container img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-    }
+.rz-button.rz-primary.rz-shade-default{background:#00436a;}
+.rz-button.rz-danger.rz-shade-default,
+.rz-button.rz-danger{background:#f0f7fa;color:#000;}
 
-    .hl {
-        color: #FF0000;
-    }
+.info-bar{ display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+    gap:1rem;margin:1.4rem 0;border:1px solid #e0e0e0;border-radius:8px;
+    background: #EBEBE6 ;padding:1rem; }
+.info-bar>div{ display:flex;flex-direction:column;gap:.15rem; }
+.info-label{ font-size:.78rem;font-weight:700;color:#555; }
+.cluster-grids .cluster-grid .rz-datagrid-header {
+    display:none;
+}
 
-    .cap-cell {
-        white-space: normal;
-        word-wrap: break-word;
-    }
-    
-    .evidence-box {
-        white-space: normal;     
-        overflow-x: visible;      
-        max-width: 600px;
-    }
-
-    .justification-view {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        background: #fff;
-        white-space: pre-wrap;   
-        box-sizing: border-box;  
-    }
+.cluster-grids .cluster-grid:first-of-type .rz-datagrid-header {
+    display:block;
+}
 </style>
