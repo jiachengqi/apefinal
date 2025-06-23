@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration.Yaml;
 using MudBlazor.Services;
 using Radzen;
+using Radzen.Blazor;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +25,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddMudServices();
 builder.Services.AddSingleton<UserService>();
 builder.Services.AddScoped<AssessmentService>();
+builder.Services.AddScoped<RadzenDialog>();
+
 
 var app = builder.Build();
 

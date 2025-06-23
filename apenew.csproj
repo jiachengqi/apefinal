@@ -18,7 +18,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Yaml" Version="2.0.0-preview2" />
     <PackageReference Include="MudBlazor" Version="8.4.0" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
-    <PackageReference Include="Radzen.Blazor" Version="6.3.2" />
+    <PackageReference Include="Radzen.Blazor" Version="7.1.1" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="Models\" />
