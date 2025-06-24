@@ -12,8 +12,8 @@ using apenew;
 namespace apenew.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250520143146_AddCrit")]
-    partial class AddCrit
+    [Migration("20250624220201_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -107,6 +107,9 @@ namespace apenew.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Evidence")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ReviewerComment")
                         .HasColumnType("text");
 
                     b.Property<string>("Scope")

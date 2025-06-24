@@ -76,9 +76,10 @@
                         <RadzenDataGridColumn TItem="Assessment" Property="AssessmentType" Title="Type" />
                         <RadzenDataGridColumn TItem="Assessment" Property="ApplicationID" Title="Application ID" />
                         <RadzenDataGridColumn TItem="Assessment" Property="Status" Title="Status" />
+
                         <RadzenDataGridColumn TItem="Assessment" Title="Submitted At">
                             <Template Context="assessment">
-                                @assessment.SubmittedAt:yyyy-MM-dd
+                                @assessment.SubmittedAt?.ToString("yyyy-MM-dd")
                             </Template>
                         </RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="Assessment" Title="Duration">
