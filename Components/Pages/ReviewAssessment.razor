@@ -120,7 +120,7 @@
             <div class="long-text">@r.Evidence</div>
         </div>
 
-        @if (UserService.Role == "Reviewer")
+        @if (UserService.Role == "Reviewer" && assessment.Status == "UnderReview")
         {
             <RadzenTextArea Style="width:100%;min-height:120px"
                             @bind-Value="r.Comment" />
