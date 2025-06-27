@@ -35,13 +35,14 @@
                                 Data="@assessments.Where(a => a.Status == "Draft")"
                                 Style="margin-top:1rem;">
                     <Columns>
-                        <RadzenDataGridColumn TItem="Assessment" Title="ID">
+                        <RadzenDataGridColumn TItem="Assessment" Property="ApplicationID" Title="Application ID" />
+                        <RadzenDataGridColumn TItem="Assessment" Title="AssessmentID">
                             <Template Context="assessment">
                                 @assessment.Id[..3]
                             </Template>
                         </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="Assessment" Property="AssessmentType" Title="Type" />
-                        <RadzenDataGridColumn TItem="Assessment" Property="ApplicationID" Title="Application ID" />
+                        <RadzenDataGridColumn TItem="Assessment" Property="AssessmentType" Title="Type"/>
+
                         <RadzenDataGridColumn TItem="Assessment" Title="Created At">
                             <Template Context="assessment">
                                 @assessment.CreateAt.ToString("yyyy-MM-dd")
@@ -52,7 +53,7 @@
                                 <RadzenButton Text="Edit"
                                               Click="@(args => EditAssessment(assessment.Id))"
                                               ButtonStyle="ButtonStyle.Primary"
-                                              Size="ButtonSize.Small" />
+                                              Size="ButtonSize.Small"/>
                             </Template>
                         </RadzenDataGridColumn>
                     </Columns>
@@ -68,31 +69,30 @@
                                 Data="@assessments.Where(a => a.Status != "Draft")"
                                 Style="margin-top:1rem;">
                     <Columns>
-                        <RadzenDataGridColumn TItem="Assessment" Title="ID">
+                        <RadzenDataGridColumn TItem="Assessment" Property="ApplicationID" Title="Application ID" />
+                        <RadzenDataGridColumn TItem="Assessment" Title="AssessmentID">
                             <Template Context="assessment">
                                 @assessment.Id[..3]
                             </Template>
                         </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="Assessment" Property="AssessmentType" Title="Type" />
-                        <RadzenDataGridColumn TItem="Assessment" Property="ApplicationID" Title="Application ID" />
-                        <RadzenDataGridColumn TItem="Assessment" Property="Status" Title="Status" />
+                        <RadzenDataGridColumn TItem="Assessment" Property="AssessmentType" Title="Type"/>
+
+                        
 
                         <RadzenDataGridColumn TItem="Assessment" Title="Submitted At">
                             <Template Context="assessment">
                                 @assessment.SubmittedAt?.ToString("yyyy-MM-dd")
                             </Template>
                         </RadzenDataGridColumn>
-                        <RadzenDataGridColumn TItem="Assessment" Title="Duration">
-                            <Template Context="assessment">
-                                @((int)(assessment.SubmittedAt - assessment.CreateAt)?.TotalHours) h
-                            </Template>
-                        </RadzenDataGridColumn>
+
+                        <RadzenDataGridColumn TItem="Assessment" Property="Status" Title="Status"/>
+                        
                         <RadzenDataGridColumn TItem="Assessment" Title="Actions">
                             <Template Context="assessment">
                                 <RadzenButton Text="Review"
                                               Click="@(args => EditAssessment(assessment.Id))"
                                               ButtonStyle="ButtonStyle.Primary"
-                                              Size="ButtonSize.Small" />
+                                              Size="ButtonSize.Small"/>
                             </Template>
                         </RadzenDataGridColumn>
                     </Columns>
