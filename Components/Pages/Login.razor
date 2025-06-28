@@ -6,10 +6,17 @@
 
 <div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
     <div style="max-width: 400px; width: 100%; padding: 1rem; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 5px; background-color: white;">
-        @* <h3 style="text-align: center;">Login</h3> *@
-        <div style="text-align: center;">
-            <img src="ap.png" style="max-width: 35%; height: auto;" />
+        <div style="display: flex; align-items: center; gap: 12px; height: 140px; overflow: hidden;">
+            <img src="ap.png" style="height: 80%; width: auto;" />
+            <img src="aas1.png" 
+                 style="height: 85%; width: auto; 
+                transform: scale(2) translate(-10px, 12px); 
+                transform-origin: left;" />
         </div>
+
+
+
+        
         <RadzenLabel Text="Username:" />
         <RadzenTextBox @bind-Value="email" Style="width: 100%;" />
 

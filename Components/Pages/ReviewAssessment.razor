@@ -31,8 +31,8 @@
                     var fade = (HoverPin is not null && HoverPin.CapabilityId != p.CapabilityId) ||
                                (selectedCapability is not null && selectedCapability != p.Capability);
 
-                    var bg  = hot ? "transparent" : fade ? "#dcdcdc" : "#6c757d";
-                    var brd = hot ? "2px solid #FF9900" : "none";
+                    var bg  = hot ? "transparent" : fade ? "#dcdcdc" : "#000000";
+                    var brd = hot ? "6px solid #FF0000" : "none";
                     var op  = fade ? ".35" : "1";
 
                     <div style="position:absolute;left:@($"{p.X}px");top:@($"{p.Y}px");
@@ -150,7 +150,9 @@
         }
         
         <div class="cluster-grids">
-        @foreach (var grp in rowsPlain.GroupBy(r => r.Cluster).OrderBy(g => g.Key))
+        @foreach (var grp in rowsPlain.GroupBy(r => r.Cluster).OrderBy(g => g.Key.Equals("Platform Security",
+                          StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+                      .ThenBy(g => g.Key))
         {
             <RadzenHeading Size="H5" Text="@grp.Key" Style="color:#00436a;margin:1rem 0 0.4rem;" />
 

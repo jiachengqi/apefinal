@@ -100,12 +100,12 @@
                         TabPosition="TabPosition.Top"
                         RenderMode="TabRenderMode.Client">
                 <Tabs>
-                    @foreach (var clusterGroup in groupedCapabilities)
+                    @foreach (var clusterGroup in groupedCapabilities.OrderBy(c => c.Cluster, StringComparer.OrdinalIgnoreCase))
                     {
                         <RadzenTabsItem Text="@clusterGroup.Cluster">
                             <RadzenAccordion Multiple="true">
                                 <Items>
-                                    @foreach (var capGroup in clusterGroup.Capabilities)
+                                    @foreach (var capGroup in clusterGroup.Capabilities.OrderBy(cg => cg.CapabilityName, StringComparer.OrdinalIgnoreCase))
                                     {
                                         <RadzenAccordionItem Text="@capGroup.CapabilityName">
                                             <div class="d-flex align-items-center mb-2 line-inputs">
@@ -116,7 +116,7 @@
                                                                 Style="width:130px;" />
 
                                                 <RadzenTextArea @bind-Value="capGroup.UiEvidence"
-                                                                Placeholder="@(capGroup.UiChecked == "Unfulfilled" ? "Justification why this capability is not met" : "How do you meet this capability? E.g. Text evidence, conflunce link, configuration")"
+                                                                Placeholder="@(capGroup.UiChecked == "Unfulfilled" ? "Justification why this capability is not met" : "How does it meet this capability? (e.g., configs, logs, Confluence links)")"
                                                                 Style="flex:1 1 300px; height:38px; min-height:38px; resize:vertical;" />
 
                                                 <RadzenButton Text="Add Pin"
@@ -124,7 +124,7 @@
                                                               Size="ButtonSize.Small"
                                                               Click="() => AddPinForCapability(capGroup.Items.First())" />
 
-                                                <RadzenButton Text="@(IsGroupDescriptionVisible(capGroup.CapabilityName) ? "Hide Details" : "Show Details")"
+                                                <RadzenButton Text="@(IsGroupDescriptionVisible(capGroup.CapabilityName) ? "Show Details" : "Hide Details")"
                                                               ButtonStyle="ButtonStyle.Secondary"
                                                               Size="ButtonSize.Small"
                                                               Click="() => ToggleGroupDescription(capGroup.CapabilityName)" />
@@ -134,7 +134,7 @@
                                                 @foreach (var sub in capGroup.Items)
                                                 {
                                                     <li>
-                                                        @if (IsGroupDescriptionVisible(capGroup.CapabilityName))
+                                                        @if (!IsGroupDescriptionVisible(capGroup.CapabilityName))
                                                         {
                                                             <div class="mt-2 p-2 bg-light rounded">
                                                                 @sub.SubcontrolDescription
