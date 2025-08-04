@@ -106,10 +106,10 @@ namespace apenew.Services
         public void LoadCapabilities()
 {
 CapabilityLoader.AddCapability("IR1.2.1", "Define a repeatable risk assessment methodology.", "Security Operations", "Threat Modeling", "Product");
-        CapabilityLoader.AddCapability("IR1.2.2", "Align risk assessments with regulatory and compliance requirements.", "Governance & Compliance", "Automated Compliance", "Both");
+        CapabilityLoader.AddCapability("IR1.2.2", "Align risk assessments with regulatory and compliance requirements.", "Governance & Compliance", "Compliance Review", "Both");
         CapabilityLoader.AddCapability("IR2.2.1", "Identify business-critical assets and processes requiring protection.", "Recovery & Resilience", "Business Continuity & Asset Management*", "Product");
         CapabilityLoader.AddCapability("IR2.4.1", "Implement logging and monitoring to detect data alterations.", "Security Operations", "SIEM", "Product");
-        CapabilityLoader.AddCapability("SD1.1.2", "Security requirements should be defined and documented for all new system developments.", "Governance & Compliance", "Assessment Process Engine", "Both");
+        CapabilityLoader.AddCapability("SD1.1.2", "Security requirements should be defined and documented for all new system developments.", "Governance & Compliance", "Assessment Process", "Both");
         CapabilityLoader.AddCapability("SD1.2.1", "Development and production environments should be strictly segregated.", "Platform Security", "Environment Segmentation", "Both");
         CapabilityLoader.AddCapability("SD1.2.2", "Access to development systems should be restricted based on job roles.", "Identity & Access Management", "IAM", "Both");
         CapabilityLoader.AddCapability("SD1.3.1", "Conduct regular security reviews as part of software testing processes.", "Code Security", "4-eyes principle", "Product");
@@ -144,7 +144,7 @@ CapabilityLoader.AddCapability("IR1.2.1", "Define a repeatable risk assessment m
         CapabilityLoader.AddCapability("TS2.2.1", "Store encryption keys securely using hardware security modules (HSMs).", "Data Security", "HSMs/Secure Storage", "Service");
         CapabilityLoader.AddCapability("TS2.2.2", "Regularly rotate cryptographic keys and enforce strong key management policies.", "Data Security", "Secrets Management", "Both");
         CapabilityLoader.AddCapability("TM1.1.1", "Conduct regular vulnerability scans and assessments of systems and applications.", "Security Operations", "Vulnerability Scanning", "Both");
-        CapabilityLoader.AddCapability("TM1.1.2", "Apply security patches and updates promptly to mitigate known vulnerabilities.", "Platform Security", "Patch Management", "Both");
+        // CapabilityLoader.AddCapability("TM1.1.2", "Apply security patches and updates promptly to mitigate known vulnerabilities.", "Platform Security", "Patch Management", "Both");
         CapabilityLoader.AddCapability("TM1.2.1", "Implement centralized logging and monitoring solutions.", "Security Operations", "SIEM", "Both");
         CapabilityLoader.AddCapability("TM1.2.2", "Retain logs for an appropriate period for forensic investigations.", "Security Operations", "Log Retention", "Both");
         CapabilityLoader.AddCapability("IM1.1.2", "Require labeling and tagging of classified information.", "Data Security", "Data Labeling & Tagging", "Both");
@@ -156,7 +156,7 @@ CapabilityLoader.AddCapability("IR1.2.1", "Define a repeatable risk assessment m
         CapabilityLoader.AddCapability("SY1.1.2", "Conduct security assessments before deploying new systems.", "Governance & Compliance", "Vulnerability Scanning", "Service");
         CapabilityLoader.AddCapability("SY1.2.1", "Apply standardized security configurations to all servers.", "Platform Security", "IaC Security & Automation", "Service");
         CapabilityLoader.AddCapability("SY1.2.2", "Regularly audit and update server configurations.", "Platform Security", "Configuration Audit & Drift Detection", "Both");
-        CapabilityLoader.AddCapability("SY1.3.1", "Apply security patches and updates to virtual machines (VMs).", "Platform Security", "Patch Management", "Both");
+        // CapabilityLoader.AddCapability("SY1.3.1", "Apply security patches and updates to virtual machines (VMs).", "Platform Security", "Patch Management", "Both");
         CapabilityLoader.AddCapability("SY1.3.2", "Implement role-based access controls (RBAC) for managing virtual resources.", "Identity & Access Management", "IAM", "Both");
         CapabilityLoader.AddCapability("SY1.4.2", "Implement strong access controls for shared storage systems.", "Identity & Access Management", "Access Control & Storage Security", "Both");
         CapabilityLoader.AddCapability("SY2.2.1", "Implement real-time system performance monitoring.", "Platform Security", "Monitoring & Observability Tools", "Service");
@@ -178,7 +178,7 @@ CapabilityLoader.AddCapability("IR1.2.1", "Define a repeatable risk assessment m
         CapabilityLoader.AddCapability("BC2.1.1", "Develop business continuity plans (BCP) for critical business functions.", "Recovery & Resilience", "Business Continuity Management", "Product");
         CapabilityLoader.AddCapability("BC2.1.2", "Conduct regular reviews and updates to business continuity plans.", "Governance & Compliance", "BCP Testing", "Product");
         CapabilityLoader.AddCapability("BC2.3.1", "Conduct regular BCP tests, including tabletop exercises and simulations.", "Governance & Compliance", "Disaster Recovery Simulations", "Both");
-        CapabilityLoader.AddCapability("AS1.1.2", "Regularly evaluate security controls for effectiveness and compliance.", "Governance & Compliance", "Compliance Automation", "Both");
+        CapabilityLoader.AddCapability("AS1.1.2", "Regularly evaluate security controls for effectiveness and compliance.", "Governance & Compliance", "Compliance Review", "Both");
         CapabilityLoader.AddCapability("AS1.2.1", "Perform regular penetration testing on critical systems and applications.", "Security Operations", "Penetration Testing", "Both");
         CapabilityLoader.AddCapability("AS1.2.2", "Utilize automated security scanning tools to identify vulnerabilities.", "Security Operations", "Vulnerability Scanning", "Both");
 }

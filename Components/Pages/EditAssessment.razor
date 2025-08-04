@@ -110,13 +110,17 @@
                                         <RadzenAccordionItem Text="@capGroup.CapabilityName">
                                             <div class="d-flex align-items-center mb-2 line-inputs">
                                                 <RadzenDropDown @bind-Value="capGroup.UiChecked"
-                                                                Data="@(new[]{ "Fulfilled","Unfulfilled"})"
-                                                                Placeholder="Fulfilment"
+                                                                Data="FulfilmentOptions"
+                                                                Placeholder="Option"
                                                                 AllowClear="false"
                                                                 Style="width:130px;" />
 
                                                 <RadzenTextArea @bind-Value="capGroup.UiEvidence"
-                                                                Placeholder="@(capGroup.UiChecked == "Unfulfilled" ? "Justification why this capability is not met" : "How does it meet this capability? (e.g., configs, logs, Confluence links)")"
+                                                                Placeholder="@(capGroup.UiChecked == "Not Fulfilled" ? "Explanation why this capability is not met"
+                                                                             : capGroup.UiChecked == "Danske Bank Responsibility" ? "Provide guidance"
+                                                                             : capGroup.UiChecked == "Vendor Responsibility" ? "Provide guidance"
+                                                                             : capGroup.UiChecked == "Not Relevant" ? "Explanation why this capability is not relevant"
+                                                                             : "How does it meet this capability? (e.g., configs, logs, Confluence links)")"
                                                                 Style="flex:1 1 300px; height:38px; min-height:38px; resize:vertical;" />
 
                                                 <RadzenButton Text="Add Pin"
@@ -186,6 +190,11 @@
     private readonly Dictionary<string,bool> showGroupDescriptions = new();
     private int currentTabIndex;
     private InputFile hiddenFile;     
+    
+    private string[] FulfilmentOptions
+        => assessment.AssessmentType == "Service"
+            ? new[] { "Danske Bank Responsibility", "Vendor Responsibility", "Not Fulfilled", "Not Relevant" }
+            : new[] { "Fulfilled", "Unfulfilled" };
     
     private class GroupedPin
     {

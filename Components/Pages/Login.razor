@@ -65,8 +65,10 @@
 
         if (role == "Reviewer")
         {
-            if ((email.Equals("q", StringComparison.OrdinalIgnoreCase) ||
-                 email.Equals("Dominik", StringComparison.OrdinalIgnoreCase)) &&
+            if ((email.Equals("dze@danskebank.dk", StringComparison.OrdinalIgnoreCase) ||
+                 email.Equals("rajsh@danskebank.dk", StringComparison.OrdinalIgnoreCase)||
+                 email.Equals("q", StringComparison.OrdinalIgnoreCase)
+            ) &&
                 password == "1")
             {
                 ProceedToApp();

@@ -161,15 +161,17 @@
                 <Columns>
                     <RadzenDataGridColumn TItem="RRow" Title="SubCtrl" Width="150px">
                         <Template Context="r">
-                            @foreach (var id in r.SubCtrls)
-                            {
-                                <div class="cap-cell"
-                                     @onmouseover="() => Hover(r.CapName)" @onmouseout="ClearHover">@id</div>
-                            }
+                            <div class="cap-cell" @onmouseover="() => Hover(r.CapName)" @onmouseout="ClearHover">
+                                @foreach (var id in r.SubCtrls)
+                                {
+                                    <div>@id</div>
+                                }
+                            </div>
                         </Template>
                     </RadzenDataGridColumn>
 
-                    <RadzenDataGridColumn TItem="RRow" Title="Capability">
+
+                    <RadzenDataGridColumn TItem="RRow" Title="Capability" Width="180px" >
                         <Template Context="r">
                             <div class="cap-cell long-text cap-wrap"
                                  @onmouseover="() => Hover(r.CapName)" @onmouseout="ClearHover">
@@ -190,7 +192,7 @@
                     </RadzenDataGridColumn>
 
                     <RadzenDataGridColumn TItem="RRow" Property="Checked"
-                                          Title="Fulfilment" Width="110px" />
+                                          Title="Fulfilment" Width="210px" />
 
                     <RadzenDataGridColumn TItem="RRow" Title="Evidence">
                         <Template Context="r">
@@ -312,17 +314,18 @@
         }
 
         rows = assessment.Capabilities
-               .Select(c => new RRow
-               {
-                   Cluster    = c.Cluster ?? "",
-                   SubCtrls   = new[] { c.SubControlID }.Where(x => x != null).ToList(),
-                   CapName    = c.CapabilityName ?? "",
-                   Checked    = c.Checked  ?? "",
-                   Evidence   = c.Evidence ?? "",
-                   Comment    = c.ReviewerComment,
-                   ShowComment = false
-               })
-               .ToList();
+            .GroupBy(c => new { c.Cluster, c.CapabilityName })
+            .Select(g => new RRow
+            {
+                Cluster    = g.Key.Cluster ?? "",
+                SubCtrls   = g.Select(x => x.SubControlID).Where(x => x != null).Distinct().ToList(),
+                CapName    = g.Key.CapabilityName ?? "",
+                Checked    = g.Select(x => x.Checked).FirstOrDefault(x => !string.IsNullOrEmpty(x)) ?? "",
+                Evidence   = g.Select(x => x.Evidence).FirstOrDefault(x => !string.IsNullOrEmpty(x)) ?? "",
+                Comment    = g.Select(x => x.ReviewerComment).FirstOrDefault(x => !string.IsNullOrEmpty(x)),
+                ShowComment = false
+            })
+            .ToList();
 
         capDict = assessment.Capabilities
                    .GroupBy(c => c.CapabilityName ?? "", StringComparer.OrdinalIgnoreCase)

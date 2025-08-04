@@ -12,7 +12,7 @@ using apenew;
 namespace apenew.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250627122708_InitialCreate")]
+    [Migration("20250628144810_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
