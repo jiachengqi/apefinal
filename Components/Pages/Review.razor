@@ -1,5 +1,5 @@
 ﻿@page "/review"
-@inject AssessmentService AssessmentService
+@inject IAssessmentService AssessmentService
 @inject UserService UserService
 @inject NavigationManager NavigationManager
 @rendermode InteractiveServer
@@ -14,7 +14,7 @@
             <Columns>
                 <RadzenDataGridColumn TItem="Assessment" Title="ID">
                     <Template Context="assessment">
-                        @assessment.Id.Substring(0, 3)
+                        @assessment.Id
                     </Template>
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="Assessment" Property="AssessmentType" Title="Type" />
@@ -37,7 +37,7 @@
             <Columns>
                 <RadzenDataGridColumn TItem="Assessment" Title="ID">
                     <Template Context="assessment">
-                        @assessment.Id.Substring(0, 3)
+                        @assessment.Id
                     </Template>
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="Assessment" Property="AssessmentType" Title="Type" />
@@ -66,7 +66,7 @@
             <Columns>
                 <RadzenDataGridColumn TItem="Assessment" Title="ID">
                     <Template Context="assessment">
-                        @assessment.Id.Substring(0, 3)
+                        @assessment.Id
                     </Template>
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn TItem="Assessment" Property="AssessmentType" Title="Type" />
@@ -99,7 +99,7 @@
     private List<Assessment> submittedAssessments;
     protected override async Task OnInitializedAsync()
     {
-        if (UserService.Role == "Reviewer")
+        if (UserService.Role != "Requester")
         {
             submittedAssessments = await AssessmentService.GetSubmittedAssessmentsAsync();
         }

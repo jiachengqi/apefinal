@@ -1,6 +1,6 @@
 ﻿@page "/assessments"
 @rendermode InteractiveServer
-@inject AssessmentService AssessmentService
+@inject IAssessmentService AssessmentService
 @inject UserService UserService
 @inject NavigationManager NavigationManager
 
@@ -21,7 +21,7 @@
     {
         <RadzenAlert Severity="AlertSeverity.Warning" Text="Please log in first." />
     }
-    else if (UserService.Role != "Requester")
+    else if (UserService.Role == "Reviewer")
     {
         <RadzenAlert Severity="AlertSeverity.Error" Text="You are not authorized to view this page." />
     }
@@ -38,7 +38,7 @@
                         <RadzenDataGridColumn TItem="Assessment" Property="ApplicationID" Title="Application ID" />
                         <RadzenDataGridColumn TItem="Assessment" Title="AssessmentID">
                             <Template Context="assessment">
-                                @assessment.Id[..3]
+                                @assessment.Id
                             </Template>
                         </RadzenDataGridColumn>
                         <RadzenDataGridColumn TItem="Assessment" Property="AssessmentType" Title="Type"/>
@@ -73,7 +73,7 @@
             
             <RadzenDataGridColumn TItem="Assessment" Title="ID" Width="100px">
                 <Template Context="assessment">
-                    @assessment.Id[..3]
+                    @assessment.Id
                 </Template>
             </RadzenDataGridColumn>
             

@@ -1,0 +1,502 @@
+[
+  {
+    "SubControlID": "SY2.2.1",
+    "SubcontrolDescription": "Implement real-time system performance monitoring.",
+    "CapabilityName": "Monitoring & Observability Tools",
+    "Cluster": "Platform Security",
+    "Checked": "Vendor Responsibility",
+    "Evidence": "AWS automatically provides underlying service monitoring for Cognito; customers rely on AWS service health",
+    "ReviewerComment": null,
+    "Scope": "Service"
+  },
+  {
+    "SubControlID": "SY1.1.1",
+    "SubcontrolDescription": "Implement security hardening guidelines for all system installations.",
+    "CapabilityName": "Config Management",
+    "Cluster": "Platform Security",
+    "Checked": "Vendor Responsibility",
+    "Evidence": "Security hardening of the Cognito service infrastructure is handled by AWS. Danske Bank teams which utilize this service in their systems design will need to deploy resources via approved Terraform",
+    "ReviewerComment": null,
+    "Scope": "Service"
+  },
+  {
+    "SubControlID": "SY2.2.2",
+    "SubcontrolDescription": "Establish alerting mechanisms for system performance degradation.",
+    "CapabilityName": "SIEM",
+    "Cluster": "Platform Security",
+    "Checked": "Vendor Responsibility",
+    "Evidence": "AWS is responsible for the performance and availability of Cognito (monitored internally by AWS)",
+    "ReviewerComment": null,
+    "Scope": "Service"
+  },
+  {
+    "SubControlID": "SA1.3.2",
+    "SubcontrolDescription": "Use role-based access control (RBAC) or attribute-based access control (ABAC).",
+    "CapabilityName": "RBAC",
+    "Cluster": "Identity & Access Management",
+    "Checked": "Danske Bank Responsibility",
+    "Evidence": "Both RBAC and ABAC are supported for Cognito access control. ABAC requires a well-defined tag strategy and IAM policy enforcement. Recommended IAM setup aligns with this requirement.",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "SY1.2.2",
+    "SubcontrolDescription": "Regularly audit and update server configurations.",
+    "CapabilityName": "Configuration Audit & Drift Detection",
+    "Cluster": "Platform Security",
+    "Checked": "Danske Bank Responsibility",
+    "Evidence": "AWS Config or similar tools should be used to monitor Cognito resource configurations for unauthorized changes",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "BA1.1.1",
+    "SubcontrolDescription": "Implement role-based access controls for all business applications.",
+    "CapabilityName": "RBAC",
+    "Cluster": "Identity & Access Management",
+    "Checked": "Danske Bank Responsibility",
+    "Evidence": "Both RBAC and ABAC are supported for Cognito access control. ABAC requires a well-defined tag strategy and IAM policy enforcement. Recommended IAM setup aligns with this requirement.",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "TS2.1.2",
+    "SubcontrolDescription": "Avoid using deprecated cryptographic algorithms.",
+    "CapabilityName": "Encryption",
+    "Cluster": "Data Security",
+    "Checked": "Vendor Responsibility",
+    "Evidence": "Amazon Cognito encrypts all customer data at rest (AWS-managed, AES-256). Data is protected in transit with TLS 1.2+. Underlying storage (user directories) is encrypted and replicated by AWS. More info: https://docs.aws.amazon.com/cognito/latest/developerguide/data-protection.html",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "SY1.4.2",
+    "SubcontrolDescription": "Implement strong access controls for shared storage systems.",
+    "CapabilityName": "Access Control & Storage Security",
+    "Cluster": "Identity & Access Management",
+    "Checked": "Danske Bank Responsibility",
+    "Evidence": "Use IAM resource policies (on Cognito user/identity pools) and ABAC via tags to enforce fine-grained access control",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "IM1.1.2",
+    "SubcontrolDescription": "Require labeling and tagging of classified information.",
+    "CapabilityName": "Data Labeling & Tagging",
+    "Cluster": "Data Security",
+    "Checked": "Danske Bank Responsibility",
+    "Evidence": "It is recommended that Amazon Cognito resources (user and identity pools) be tagged and utilize IAM attribute-based access control (ABAC) for access scoping and accountability.",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "IR1.2.2",
+    "SubcontrolDescription": "Align risk assessments with regulatory and compliance requirements.",
+    "CapabilityName": "Compliance Review",
+    "Cluster": "Governance & Compliance",
+    "Checked": "Danske Bank Responsibility",
+    "Evidence": "All services at Danske Bank are reviewed annually in line with bank policy.",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "TS1.7.1",
+    "SubcontrolDescription": "Implement access restrictions and tracking for sensitive digital assets.",
+    "CapabilityName": "IAM",
+    "Cluster": "Identity & Access Management",
+    "Checked": "Danske Bank Responsibility",
+    "Evidence": "Cognito access is controlled through IAM roles and policies defined by the customer. AWS does not grant permissions by default—customers must implement job-role-based access. RBAC (role-based access control) in Cognito is enforced through IAM policies, which must be configured by the customer. We must enable logging and write IAM policies to restrict sensitive operations.",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "SC2.2.2",
+    "SubcontrolDescription": "Require multi-factor authentication (MFA) for cloud service access.",
+    "CapabilityName": "Cloud MFA",
+    "Cluster": "Identity & Access Management",
+    "Checked": "Danske Bank Responsibility",
+    "Evidence": "MFA is mandatory for all IAM users administering Cognito. (Amazon Cognito user pools also support enabling user MFA via SMS or TOTP.)",
+    "ReviewerComment": null,
+    "Scope": "Service"
+  },
+  {
+    "SubControlID": "AS1.2.1",
+    "SubcontrolDescription": "Perform regular penetration testing on critical systems and applications.",
+    "CapabilityName": "Penetration Testing",
+    "Cluster": "Security Operations",
+    "Checked": "Danske Bank Responsibility",
+    "Evidence": "Applications using Cognito should be included in annual penetration tests. (Note: AWS Cognito service itself cannot be directly attacked under AWS policy.) Penetration Testing services must be conducted annually, and can be requested here: https://home.danskenet.net/sites/securityportal/SitePages/ServiceCatalogue.aspx?area=19&bso=26",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "TS1.6.2",
+    "SubcontrolDescription": "Enforce encryption policies for data at rest and in transit.",
+    "CapabilityName": "Encryption",
+    "Cluster": "Data Security",
+    "Checked": "Vendor Responsibility",
+    "Evidence": "Amazon Cognito encrypts all customer data at rest (AWS-managed, AES-256). Data is protected in transit with TLS 1.2+. Underlying storage (user directories) is encrypted and replicated by AWS. More info: https://docs.aws.amazon.com/cognito/latest/developerguide/data-protection.html TLS 1.2+ and AES-256 are enforced automatically for Amazon Cognito; encryption cannot be disabled: https://docs.aws.amazon.com/cognito/latest/developerguide/data-protection.html Encryption at rest and in transit are automatically enforced by AWS for Cognito; customers cannot disable them. AWS enforces modern cryptographic standards (e.g., TLS 1.2+ with strong ciphers) for Amazon Cognito communications.",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "SY1.1.2",
+    "SubcontrolDescription": "Conduct security assessments before deploying new systems.",
+    "CapabilityName": "Vulnerability Scanning",
+    "Cluster": "Governance & Compliance",
+    "Checked": "Vendor Responsibility",
+    "Evidence": "Vulnerability scanning of AWS-managed services (including Cognito) is handled by AWS.",
+    "ReviewerComment": null,
+    "Scope": "Service"
+  },
+  {
+    "SubControlID": "SY1.3.2",
+    "SubcontrolDescription": "Implement role-based access controls (RBAC) for managing virtual resources.",
+    "CapabilityName": "IAM",
+    "Cluster": "Identity & Access Management",
+    "Checked": "Danske Bank Responsibility",
+    "Evidence": "Cognito access is controlled through IAM roles and policies defined by the customer. AWS does not grant permissions by default—customers must implement job-role-based access. RBAC (role-based access control) in Cognito is enforced through IAM policies, which must be configured by the customer. We must enable logging and write IAM policies to restrict sensitive operations.",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "SD2.6.2",
+    "SubcontrolDescription": "Use automated static analysis tools for detecting security issues in code.",
+    "CapabilityName": "SAST",
+    "Cluster": "Code Security",
+    "Checked": "Danske Bank Responsibility",
+    "Evidence": "Amazon Cognito is a managed service; CI/CD code scanning applies to customer applications, not the Cognito service. Amazon Cognito is a managed service.",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "SY1.2.1",
+    "SubcontrolDescription": "Apply standardized security configurations to all servers.",
+    "CapabilityName": "IaC Security & Automation",
+    "Cluster": "Platform Security",
+    "Checked": "Danske Bank Responsibility",
+    "Evidence": "Using IaC (Terraform) is mandatory unless alternative is authorized",
+    "ReviewerComment": null,
+    "Scope": "Service"
+  },
+  {
+    "SubControlID": "SD1.2.1",
+    "SubcontrolDescription": "Development and production environments should be strictly segregated.",
+    "CapabilityName": "Environment Segmentation",
+    "Cluster": "Platform Security",
+    "Checked": "Danske Bank Responsibility",
+    "Evidence": "Use separate Cognito user/identity pools for dev, test, and prod, and tag resources to segregate environments. LINK TO ENVIRONMENT SEGREGATION: https://confluence.danskenet.net/spaces/MC/pages/829270889/AWS+Organizations+OU+Structure",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "TM1.2.2",
+    "SubcontrolDescription": "Retain logs for an appropriate period for forensic investigations.",
+    "CapabilityName": "Log Retention",
+    "Cluster": "Security Operations",
+    "Checked": "Danske Bank Responsibility",
+    "Evidence": "CloudTrail logs for Cognito (management API calls) must be delivered to S3/SecOps with a retention policy",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "SD1.2.2",
+    "SubcontrolDescription": "Access to development systems should be restricted based on job roles.",
+    "CapabilityName": "IAM",
+    "Cluster": "Identity & Access Management",
+    "Checked": "Danske Bank Responsibility",
+    "Evidence": "Cognito access is controlled through IAM roles and policies defined by the customer. AWS does not grant permissions by default—customers must implement job-role-based access. RBAC (role-based access control) in Cognito is enforced through IAM policies, which must be configured by the customer. We must enable logging and write IAM policies to restrict sensitive operations.",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "SA1.1.3",
+    "SubcontrolDescription": "Implement access logging and monitoring.",
+    "CapabilityName": "Logging & Monitoring",
+    "Cluster": "Security Operations",
+    "Checked": "Danske Bank Responsibility",
+    "Evidence": "Monitor Cognito via CloudTrail (for API calls) and CloudWatch (for user activity). Logs and events should be forwarded to SIEM (QRadar). More info: https://docs.aws.amazon.com/cognito/latest/developerguide/monitoring.html#:~:text=,and%20when%20it%20was%20made",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "SY2.3.1",
+    "SubcontrolDescription": "Implement automated backup processes for critical data.",
+    "CapabilityName": "Backup & DR solutions",
+    "Cluster": "Recovery & Resilience",
+    "Checked": "Danske Bank Responsibility",
+    "Evidence": "Amazon Cognito is multi-AZ by default, but AWS provides a User Profiles Export solution to back up user data. Consider implementing this reference architecture to export key user pool data. More Info: https://aws.amazon.com/solutions/guidance/user-profiles-export-with-amazon-cognito/#:~:text=This%20Guidance%20demonstrates%20how%20to,over%20Amazon%20Cognito%20user%20data",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "AS1.1.2",
+    "SubcontrolDescription": "Regularly evaluate security controls for effectiveness and compliance.",
+    "CapabilityName": "Compliance Review",
+    "Cluster": "Governance & Compliance",
+    "Checked": "Danske Bank Responsibility",
+    "Evidence": "All services at Danske Bank are reviewed annually in line with bank policy.",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "IM1.1.3",
+    "SubcontrolDescription": "Apply access controls based on classification levels.",
+    "CapabilityName": "Identity & Access Management",
+    "Cluster": "Identity & Access Management",
+    "Checked": "Danske Bank Responsibility",
+    "Evidence": "IAM tagging and ABAC allow classification-based controls (e.g., env:prod, team:alpha).",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "TM1.1.1",
+    "SubcontrolDescription": "Conduct regular vulnerability scans and assessments of systems and applications.",
+    "CapabilityName": "Vulnerability Scanning",
+    "Cluster": "Security Operations",
+    "Checked": "Vendor Responsibility",
+    "Evidence": "AWS conducts vulnerability scanning on its managed Cognito infrastructure",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "NC1.5.1",
+    "SubcontrolDescription": "Implement deny-by-default rules and allow only necessary traffic.",
+    "CapabilityName": "Firewall, ACL",
+    "Cluster": "Network Security",
+    "Checked": "Not Relevant",
+    "Evidence": "Amazon Cognito is a regional service without VPC endpoints or PrivateLink. Access is controlled via IAM, not network ACLs.",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "TM1.2.1",
+    "SubcontrolDescription": "Implement centralized logging and monitoring solutions.",
+    "CapabilityName": "SIEM",
+    "Cluster": "Security Operations",
+    "Checked": "Danske Bank Responsibility",
+    "Evidence": "All logs related to CodeDeploy (CloudTrail, CloudWatch Events) must be forwarded to the centralized SIEM (QRadar) for correlation and alerting.",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "BC1.2.1",
+    "SubcontrolDescription": "Conduct regular Business Impact Analyses (BIA) to assess risk exposure.",
+    "CapabilityName": "Business Impact Assessment",
+    "Cluster": "Risk Management",
+    "Checked": "Danske Bank Responsibility",
+    "Evidence": "All systems using Cognito must have a completed business impact assessment. All systems deployed within Danske Bank must have a completed business impact assessment. Step-by-step: BC processes explained: https://confluence.danskenet.net/pages/releaseview.action?pageId=542943247#Stepbystep:BCprocessesexplained-DevelopingBCdocuments",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "SC2.1.1",
+    "SubcontrolDescription": "Establish cloud security governance aligned with internal risk management frameworks.",
+    "CapabilityName": "CSPM",
+    "Cluster": "Governance & Compliance",
+    "Checked": "Danske Bank Responsibility",
+    "Evidence": "All bank products in Cloud must be managed by Prisma Cloud.",
+    "ReviewerComment": null,
+    "Scope": "Service"
+  },
+  {
+    "SubControlID": "SD2.10",
+    "SubcontrolDescription": "Ensure secure decommissioning of obsolete systems.",
+    "CapabilityName": "Decomissioning Plan",
+    "Cluster": "Governance & Compliance",
+    "Checked": "Danske Bank Responsibility",
+    "Evidence": "In the event that a system will decommission Cognito, all persistent data and access must be removed/sanitized.",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "TS2.2.2",
+    "SubcontrolDescription": "Regularly rotate cryptographic keys and enforce strong key management policies.",
+    "CapabilityName": "Secrets Management",
+    "Cluster": "Data Security",
+    "Checked": "Vendor Responsibility",
+    "Evidence": "Amazon Cognito uses AWS-managed encryption keys. AWS rotates these keys automatically and customers cannot directly manage or rotate them.",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "IM2.1.2",
+    "SubcontrolDescription": "Encrypt sensitive documents stored digitally.",
+    "CapabilityName": "Encryption",
+    "Cluster": "Data Security",
+    "Checked": "Vendor Responsibility",
+    "Evidence": "Amazon Cognito encrypts all customer data at rest (AWS-managed, AES-256). Data is protected in transit with TLS 1.2+. Underlying storage (user directories) is encrypted and replicated by AWS. More info: https://docs.aws.amazon.com/cognito/latest/developerguide/data-protection.html TLS 1.2+ and AES-256 are enforced automatically for Amazon Cognito; encryption cannot be disabled: https://docs.aws.amazon.com/cognito/latest/developerguide/data-protection.html Encryption at rest and in transit are automatically enforced by AWS for Cognito; customers cannot disable them. AWS enforces modern cryptographic standards (e.g., TLS 1.2+ with strong ciphers) for Amazon Cognito communications.",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "SD2.5.2",
+    "SubcontrolDescription": "Automated security scanning should be integrated into CI/CD pipelines.",
+    "CapabilityName": "SAST",
+    "Cluster": "Code Security",
+    "Checked": "Danske Bank Responsibility",
+    "Evidence": "Amazon Cognito is a managed service; CI/CD code scanning applies to customer applications, not the Cognito service. Amazon Cognito is a managed service.",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "SD1.1.2",
+    "SubcontrolDescription": "Security requirements should be defined and documented for all new system developments.",
+    "CapabilityName": "Assessment Process",
+    "Cluster": "Governance & Compliance",
+    "Checked": "Danske Bank Responsibility",
+    "Evidence": "Teams, that are utilizing this service, must take their solution through the Assessment Process Engine",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "SC2.1.2",
+    "SubcontrolDescription": "Implement cloud security monitoring and access controls.",
+    "CapabilityName": "Cloud Workload Protection",
+    "Cluster": "Platform Security",
+    "Checked": "Danske Bank Responsibility",
+    "Evidence": "Use IAM roles and policies to enforce least-privilege access for Cognito management. All administrative API calls are logged to AWS CloudTrail",
+    "ReviewerComment": null,
+    "Scope": "Service"
+  },
+  {
+    "SubControlID": "TS2.1.1",
+    "SubcontrolDescription": "Implement strong encryption standards for data at rest and in transit.",
+    "CapabilityName": "Encryption",
+    "Cluster": "Data Security",
+    "Checked": "Vendor Responsibility",
+    "Evidence": "Amazon Cognito encrypts all customer data at rest (AWS-managed, AES-256). Data is protected in transit with TLS 1.2+. Underlying storage (user directories) is encrypted and replicated by AWS. More info: https://docs.aws.amazon.com/cognito/latest/developerguide/data-protection.html TLS 1.2+ and AES-256 are enforced automatically for Amazon Cognito; encryption cannot be disabled: https://docs.aws.amazon.com/cognito/latest/developerguide/data-protection.html Encryption at rest and in transit are automatically enforced by AWS for Cognito; customers cannot disable them. AWS enforces modern cryptographic standards (e.g., TLS 1.2+ with strong ciphers) for Amazon Cognito communications.",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "TS2.2.1",
+    "SubcontrolDescription": "Store encryption keys securely using hardware security modules (HSMs).",
+    "CapabilityName": "HSMs/Secure Storage",
+    "Cluster": "Data Security",
+    "Checked": "Danske Bank Responsibility",
+    "Evidence": "AWS Key Management Service (used by Cognito) is backed by FIPS 140-2 validated HSMs.",
+    "ReviewerComment": null,
+    "Scope": "Service"
+  },
+  {
+    "SubControlID": "BC2.3.1",
+    "SubcontrolDescription": "Conduct regular BCP tests, including tabletop exercises and simulations.",
+    "CapabilityName": "Disaster Recovery Simulations",
+    "Cluster": "Governance & Compliance",
+    "Checked": "Vendor Responsibility",
+    "Evidence": "Disaster recovery of AWS services (including Amazon Cognito) is handled by AWS per our service agreement.",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "SD2.4.2",
+    "SubcontrolDescription": "Systems should be patched and updated before deployment.",
+    "CapabilityName": "Patch Management",
+    "Cluster": "Platform Security",
+    "Checked": "Vendor Responsibility",
+    "Evidence": "AWS manages patching of the Cognito service infrastructure",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "SD2.6.1",
+    "SubcontrolDescription": "Require peer review of all critical code for security vulnerabilities.",
+    "CapabilityName": "4-eyes principle",
+    "Cluster": "Code Security",
+    "Checked": "Not Relevant",
+    "Evidence": "Amazon Cognito is an AWS-managed service; code review applies to Danske Bank’s own development processes, not to Cognito itself",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "SC2.2.1",
+    "SubcontrolDescription": "Enforce encryption for data stored in cloud services.",
+    "CapabilityName": "Cloud Encryption & Key Management",
+    "Cluster": "Data Security",
+    "Checked": "Vendor Responsibility",
+    "Evidence": "Amazon Cognito automatically encrypts all data at rest using AWS-managed keys (AES-256). Data in transit requires TLS 1.2+. Customer-managed keys are not supported by Cognito. More info: https://docs.aws.amazon.com/cognito/latest/developerguide/data-protection.html",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "SD2.4.1",
+    "SubcontrolDescription": "Standardized security hardening guidelines should be followed for system builds.",
+    "CapabilityName": "Hardened Configs",
+    "Cluster": "Platform Security",
+    "Checked": "Danske Bank Responsibility",
+    "Evidence": "Enforce hardened baseline configurations via infrastructure-as-code (e.g. Terraform) and policy tools",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "BC1.3.1",
+    "SubcontrolDescription": "Implement redundant systems for critical applications.",
+    "CapabilityName": "Cloud HA & Failover",
+    "Cluster": "Recovery & Resilience",
+    "Checked": "Vendor Responsibility",
+    "Evidence": "Amazon Cognito is designed for high availability. It is distributed across multiple Availability Zones in each region. More info: https://docs.aws.amazon.com/cognito/latest/developerguide/what-is-amazon-cognito.html#:~:text=Amazon%20Cognito%20is%20available%20in,redundancy%2C%20while%20also%20minimizing%20latency",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "SY2.3.2",
+    "SubcontrolDescription": "Encrypt backup data and store copies in a secure location.",
+    "CapabilityName": "Backup Encryption",
+    "Cluster": "Recovery & Resilience",
+    "Checked": "Danske Bank Responsibility",
+    "Evidence": "Any backups of Cognito data (e.g. exports to Amazon S3) must be encrypted at rest (use S3 encryption policies or bucket encryption)",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "BC1.3.2",
+    "SubcontrolDescription": "Use geographically distributed data centers for disaster recovery.",
+    "CapabilityName": "Disaster Recover as a Service",
+    "Cluster": "Recovery & Resilience",
+    "Checked": "Danske Bank Responsibility",
+    "Evidence": "Amazon Cognito is regional and has no built-in cross-region replication. AWS recommends using multi-region export/import of user pools for DR. More info: https://aws.amazon.com/solutions/guidance/user-profiles-export-with-amazon-cognito/#:~:text=This%20Guidance%20demonstrates%20how%20to,over%20Amazon%20Cognito%20user%20data",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "SY2.4.2",
+    "SubcontrolDescription": "Require security impact assessments before implementing system changes.",
+    "CapabilityName": "Posture Management Tools",
+    "Cluster": "Risk Management",
+    "Checked": "Vendor Responsibility",
+    "Evidence": "AWS ensures Cognito service security (impact assessments) as part of its operational processes",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "AS1.2.2",
+    "SubcontrolDescription": "Utilize automated security scanning tools to identify vulnerabilities.",
+    "CapabilityName": "Vulnerability Scanning",
+    "Cluster": "Security Operations",
+    "Checked": "Vendor Responsibility",
+    "Evidence": "AWS conducts vulnerability scanning on its managed Cognito infrastructure",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  },
+  {
+    "SubControlID": "NC1.1.1",
+    "SubcontrolDescription": "Implement documented configuration standards for routers, firewalls, and switches.",
+    "CapabilityName": "Config Management",
+    "Cluster": "Network Security",
+    "Checked": "Vendor Responsibility",
+    "Evidence": "This is an AWS-managed service; network infrastructure configuration is handled by AWS under the shared responsibility model",
+    "ReviewerComment": null,
+    "Scope": "Service"
+  },
+  {
+    "SubControlID": "SD2.5.1",
+    "SubcontrolDescription": "Perform penetration testing on all critical systems before deployment.",
+    "CapabilityName": "Penetration Testing",
+    "Cluster": "Security Operations",
+    "Checked": "Danske Bank Responsibility",
+    "Evidence": "Applications using Cognito should be included in annual penetration tests. (Note: AWS Cognito service itself cannot be directly attacked under AWS policy.) Penetration Testing services must be conducted annually, and can be requested here: https://home.danskenet.net/sites/securityportal/SitePages/ServiceCatalogue.aspx?area=19&bso=26",
+    "ReviewerComment": null,
+    "Scope": "Both"
+  }
+]

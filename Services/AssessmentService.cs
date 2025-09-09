@@ -1,11 +1,10 @@
-﻿using System;
-using apenew.Helper;
+﻿using apenew.Helper;
 using apenew.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace apenew.Services
 {
-    public class AssessmentService
+    public class AssessmentService : IAssessmentService
     {
         private readonly ApplicationDbContext _context;
 
@@ -13,30 +12,8 @@ namespace apenew.Services
         {
             _context = context;
         }
-
-        public async Task<List<Assessment>> GetAssessmentsByEmailAsync(string email)
-        {
-            return await _context.Assessments
-                .Where(a => a.Email == email)
-                .ToListAsync();
-        }
-
-        public async Task<List<Assessment>> GetSubmittedAssessmentsAsync()
-        {
-            return await _context.Assessments
-                .Where(a => a.Status != "Draft")
-                .ToListAsync();
-        }
-
-        public async Task<Assessment> GetAssessmentByIdAsync(string id)
-        {
-            return await _context.Assessments
-                .Include(a => a.Capabilities)
-                .Include(a => a.Pins) 
-                .FirstOrDefaultAsync(a => a.Id == id);
-        }
-
-        public async Task CreateAssessmentAsync(Assessment assessment, string assessmentType)
+        
+        public async Task CreateAssessmentAsync(Assessment assessment)
         {
             assessment.CreateAt = DateTime.UtcNow;
             assessment.Status = "Draft";
@@ -45,7 +22,7 @@ namespace apenew.Services
 
             LoadCapabilities();
 
-            var capabilities = assessmentType == "Product"
+            var capabilities = assessment.AssessmentType == "Product"
                 ? CapabilityLoader.PredefinedCapabilities.ProductCapabilities
                 : CapabilityLoader.PredefinedCapabilities.PlatformCapabilities;
 
@@ -66,7 +43,67 @@ namespace apenew.Services
             
             CapabilityLoader.PredefinedCapabilities.ProductCapabilities.Clear();
             CapabilityLoader.PredefinedCapabilities.PlatformCapabilities.Clear();
-            
+        }
+
+        public async Task DeleteAssessmentAsync(string assessmentId)
+        {
+            var assessment = await _context.Assessments.FindAsync(assessmentId);
+            if (assessment != null)
+            {
+                _context.Assessments.Remove(assessment);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<List<Assessment>> GetAssessmentsByEmailAsync(string email)
+        {
+            return await _context.Assessments
+                .Where(a => a.Email == email)
+                .ToListAsync();
+        }
+        
+        public async Task<Assessment> GetAssessmentByIdAsync(string id)
+        {
+            return await _context.Assessments
+                .Include(a => a.Capabilities)
+                .Include(a => a.Pins) 
+                .FirstOrDefaultAsync(a => a.Id == id);
+        }
+
+        public async Task<List<Assessment>> GetSubmittedAssessmentsAsync()
+        {
+            return await _context.Assessments
+                .Where(a => a.Status != "Draft")
+                .Include(a => a.Capabilities)
+                .ToListAsync();
+        }
+        
+        public async Task<List<Assessment>> GetAllAssessmentsAsync()
+        {
+            return await _context.Assessments
+                .ToListAsync();
+        }
+
+
+        public async Task UplpadAssessmentCapabilitiesFromJson(string assessmentId, List<Capability> uploadedCapabilities)
+        {
+            var dbCapabilities = _context.Capabilities
+                .Where(c => c.AssessmentId == assessmentId)
+                .ToList();
+
+            foreach (var uploaded in uploadedCapabilities)
+            {
+                var dbCap = dbCapabilities
+                    .FirstOrDefault(c => c.SubControlID == uploaded.SubControlID);
+
+                if (dbCap != null)
+                {
+                    dbCap.Evidence = uploaded.Evidence;
+                    dbCap.Checked = uploaded.Checked;
+                }
+            }
+
+            await _context.SaveChangesAsync();
         }
 
         public async Task UpdateAssessmentAsync(Assessment assessment)
@@ -182,6 +219,7 @@ CapabilityLoader.AddCapability("IR1.2.1", "Define a repeatable risk assessment m
         CapabilityLoader.AddCapability("AS1.2.1", "Perform regular penetration testing on critical systems and applications.", "Security Operations", "Penetration Testing", "Both");
         CapabilityLoader.AddCapability("AS1.2.2", "Utilize automated security scanning tools to identify vulnerabilities.", "Security Operations", "Vulnerability Scanning", "Both");
 }
+
 
     }
     

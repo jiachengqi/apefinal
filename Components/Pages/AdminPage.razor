@@ -1,0 +1,94 @@
+@page "/admin/assessments"
+@rendermode InteractiveServer
+@inject IAssessmentService AssessmentService
+@inject UserService UserService
+@inject NavigationManager NavigationManager
+@inject NotificationService notificationService
+
+
+<RadzenButton Text="Home" Click="@BackToHome" ButtonStyle="ButtonStyle.Light" />
+<RadzenDataGrid TItem="Assessment" Data="@assessments" RowSelect="@OnRowSelect" ColumnWidth="200px" >
+    <Columns>
+        <RadzenDataGridColumn TItem="Assessment" Property="Id" Title="ID" />
+        <RadzenDataGridColumn TItem="Assessment" Title="Status">
+            <Template Context="assessment">
+                <p>@assessment.Status</p>
+
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn TItem="Assessment" Property="CreateAt" Title="CreatedAt" />
+        <RadzenDataGridColumn TItem="Assessment" Property="Email" Title="CreatedBy" />
+        <RadzenDataGridColumn TItem="Assessment" Title="Actions">
+            <Template Context="assessment">
+                <RadzenButton Text="Delete" Click="@(args => DeleteAssessment(assessment.Id))" />
+            </Template>
+            <Template Context="assessment">
+                <RadzenButton Text="Edit"
+                              Click="@(args => EditAssessment(assessment.Id))"
+                              ButtonStyle="ButtonStyle.Primary"
+                              Size="ButtonSize.Small"/>
+            </Template>
+            
+            
+        </RadzenDataGridColumn>
+
+    </Columns>
+</RadzenDataGrid>
+
+<RadzenNotification />
+
+@code {
+    private List<Assessment> assessments = new();
+    
+    private void BackToHome() => NavigationManager.NavigateTo("/", true);
+
+    protected override async Task OnInitializedAsync()
+    {
+        assessments = await AssessmentService.GetAllAssessmentsAsync();
+        UserService.Role = "Admin";
+    }
+    
+    private async Task EditAssessment(string id)
+    {
+        var a = await AssessmentService.GetAssessmentByIdAsync(id);
+        var readOnly = new[] { "Validated", "Rejected", "Submitted", "UnderReview" }.Contains(a.Status);
+        NavigationManager.NavigateTo(readOnly ? $"/review-assessment/{id}"
+            : $"/edit-assessment/{id}", true);
+    }
+
+    private async Task DeleteAssessment(string assessmentId)
+    {
+        Console.WriteLine($"DeleteAssessment called with {assessmentId}");
+        await AssessmentService.DeleteAssessmentAsync(assessmentId);
+        assessments = await AssessmentService.GetAllAssessmentsAsync();
+        notificationService.Notify(new NotificationMessage
+        {
+            Severity = NotificationSeverity.Success,
+            Summary = "Assessment deleted",
+            Detail = $"Assessment {assessmentId} was deleted successfully.",
+            Duration = 3000
+        });
+    }
+
+    void OnRowSelect(Assessment assessment) { /* Optionally view/edit */ }
+}
+
+<style>
+.rz-button.rz-primary.rz-shade-default {
+background-color: #00436a;
+}
+
+.radzen-dropdown .ui-dropdown:focus {
+background-color: #00436a;
+}
+
+.radzen-textbox .ui-inputtext:focus,
+.radzen-password .ui-inputtext:focus {
+background-color: #00436a;
+}
+
+:root {
+--rz-on-primary-lighter: #00436a;
+--rz-primary: #00436a;
+}
+</style>

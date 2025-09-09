@@ -1,42 +1,100 @@
 ﻿@page "/create-assessment"
+@using System.Text.Json
+@using System.Linq
 @rendermode InteractiveServer
-@inject AssessmentService AssessmentService
+@inject IJSRuntime JS
+@inject IAssessmentService AssessmentService
 @inject UserService UserService
 @inject NavigationManager NavigationManager
+@inject NotificationService notificationService
 
-<RadzenButton Text="Home" Click="@BackToHome" ButtonStyle="ButtonStyle.Light" />
+<div class="title-bar">
+    <RadzenButton Text="Home" Click="@BackToHome" ButtonStyle="ButtonStyle.Light"/>
+
+    <div style="margin-top: 1rem; display:flex; align-items:center; gap:.5rem;">
+        <RadzenButton Text="import Capabilities JSON"
+                      ButtonStyle="ButtonStyle.Primary"
+                      Click="TriggerJsonUpload"/>
+
+        <InputFile @ref="jsonFile"
+                   Accept=".json"
+                   OnChange="OnInputJson"
+                   style="display:none;"/>
+    </div>
+</div>
+
+
 <div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
-    <div style="max-width: 400px; width: 100%; padding: 1rem; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 5px; background-color: white;">
+    <div
+        style="max-width: 400px; width: 100%; padding: 1rem; box-shadow: 0 0 10px rgba(0,0,0,0.1); border-radius: 5px; background-color: white;">
         <h3 style="text-align: center;">New Assessment</h3>
         <div style="margin-top: 1rem;">
-            <RadzenLabel Text="Type:" />
+            <RadzenLabel Text="Type:"/>
             <RadzenDropDown
                 @bind-Value="assessmentType"
                 Data="assessmentTypes"
                 TextProperty="DisplayName"
                 ValueProperty="Value"
-                Style="width: 100%;" />
-            
+                Style="width: 100%;"/>
         </div>
         <div style="margin-top: 1rem;">
-            <RadzenLabel Text="Application ID:" />
-            <RadzenTextBox @bind-Value="applicationID" Style="width: 100%;" />
+            <RadzenLabel Text="Application ID:"/>
+            <RadzenTextBox @bind-Value="applicationID" Style="width: 100%;"/>
         </div>
         <div style="margin-top: 1rem;">
-            <RadzenLabel Text="Criticality:" />
-            <RadzenDropDown @bind-Value="criticality" Data="@(new List<string> { "C1", "C2", "C3", "C4" })" Style="width: 100%;" />
+            <RadzenLabel Text="Criticality:"/>
+            <RadzenDropDown @bind-Value="criticality" Data="@(new List<string> { "C1", "C2", "C3", "C4" })"
+                            Style="width: 100%;"/>
         </div>
-        <RadzenButton Text="Create" Click="CreateNewAssessment" Style="margin-top: 1rem;" ButtonStyle="ButtonStyle.Primary" />
+        <RadzenButton Text="Create" Click="CreateNewAssessment" Style="margin-top: 1rem;"
+                      ButtonStyle="ButtonStyle.Primary"/>
     </div>
+
+    @if (uploadedCapabilities?.Count > 0)
+    {
+        <div style="  position:fixed;
+  right:24px;
+  top:50%;
+  transform:translateY(-50%);
+  width:320px;
+  max-height:60vh;
+  overflow:auto;
+  padding:1rem;
+  background:white;
+  border:1px solid #eee;
+  border-radius:6px;
+  box-shadow:0 4px 12px rgba(0,0,0,.12);
+  z-index:1000;">
+            <b>Imported Capabilities Preview:</b>
+            <ul>
+                @foreach (var name in uploadedCapabilities
+                                  .Where(c => !string.IsNullOrWhiteSpace(c.CapabilityName))
+                                  .Select(c => c.CapabilityName.Trim())
+                                  .Distinct(StringComparer.OrdinalIgnoreCase)
+                                  .OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
+                {
+                    <li>@name</li>
+                }
+
+            </ul>
+        </div>
+    }
 </div>
+
+<RadzenNotification/>
 
 @code {
     private string assessmentType = "Product";
     private string criticality = "C1";
     private string applicationID;
+    private List<Capability> uploadedCapabilities = new();
+    private InputFile jsonFile;
+
+    private async Task TriggerJsonUpload() =>
+        await JS.InvokeVoidAsync("triggerClick", jsonFile?.Element);
+
     private async Task CreateNewAssessment()
     {
-        
         if (!string.IsNullOrWhiteSpace(applicationID))
         {
             var assessment = new Assessment
@@ -44,37 +102,124 @@
                 Email = UserService.Email,
                 AssessmentType = assessmentType,
                 ApplicationID = applicationID,
-                Criticality = criticality
+                Criticality = criticality,
+                // Capabilities = uploadedCapabilities?.ToList() ?? new List<Capability>()
             };
-            await AssessmentService.CreateAssessmentAsync(assessment, assessmentType);
+            await AssessmentService.CreateAssessmentAsync(assessment);
+
+            if (uploadedCapabilities?.Count > 0)
+            {
+                await AssessmentService.UplpadAssessmentCapabilitiesFromJson(assessment.Id, uploadedCapabilities);
+            }
+
             NavigationManager.NavigateTo($"/edit-assessment/{assessment.Id}", true);
         }
-        
+        else
+        {
+            notificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Warning,
+                Summary = "Validation",
+                Detail = "Application ID is required.",
+                Duration = 3000
+            });
+        }
     }
-    
+
+    private async Task OnInputJson(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            var browserFile = e.File;
+            using var stream = browserFile.OpenReadStream(5_000_000); // 5MB limit
+            var capabilities = await JsonSerializer.DeserializeAsync<List<Capability>>(stream);
+            if (capabilities != null)
+            {
+                uploadedCapabilities = capabilities;
+                notificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "Upload Success",
+                    Detail = "Capabilities loaded from JSON.",
+                    Duration = 3000
+                });
+            }
+            else
+            {
+                uploadedCapabilities = new();
+                notificationService.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Warning,
+                    Summary = "Upload Failed",
+                    Detail = "JSON was empty or invalid.",
+                    Duration = 3000
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            uploadedCapabilities = new();
+            notificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Error,
+                Summary = "Upload Error",
+                Detail = $"Could not parse JSON: {ex.Message}",
+                Duration = 4000
+            });
+        }
+
+        StateHasChanged();
+    }
+
     private void BackToHome() => NavigationManager.NavigateTo("/", true);
     private void BackToLastPage() => NavigationManager.NavigateTo("/assessments", true);
-    
+
     public class AssessmentType
     {
         public string DisplayName { get; set; }
         public string Value { get; set; }
     }
-    
+
     private List<AssessmentType> assessmentTypes = new List<AssessmentType>
     {
         new AssessmentType { DisplayName = "System Assessment", Value = "Product" },
         new AssessmentType { DisplayName = "Service Evaluation", Value = "Service" }
     };
+
 }
 
 <style>
-.rz-button.rz-primary.rz-shade-default {
+    .rz-button.rz-primary.rz-shade-default {
         background-color: #00436a;
     }
 
-:root {
-    --rz-on-primary-lighter: #00436a;
-    --rz-primary: #00436a;
-}
+    .radzen-dropdown .ui-dropdown:focus {
+        background-color: #00436a;
+    }
+
+    .radzen-textbox .ui-inputtext:focus,
+    .radzen-password .ui-inputtext:focus {
+        background-color: #00436a;
+    }
+
+    :root {
+        --rz-on-primary-lighter: #00436a;
+        --rz-primary: #00436a;
+    }
+
+    html, body {
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .title-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
 </style>
+
+<script>
+    window.triggerClick = el => el && el.click();
+</script>

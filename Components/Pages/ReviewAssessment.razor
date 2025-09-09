@@ -1,7 +1,7 @@
 ﻿@page "/review-assessment/{id}"
 @using System.Linq
 @using Radzen
-@inject AssessmentService  AssessmentService
+@inject IAssessmentService AssessmentService
 @inject UserService        UserService
 @inject NavigationManager  NavigationManager
 @inject RadzenDialog RadzenDialog
@@ -12,14 +12,12 @@
 
     @if (assessment is not null)
     {
- 
         <div class="info-bar">
             <div><span class="info-label">Assessment&nbsp;ID</span><span>@assessment.Id</span></div>
             <div><span class="info-label">Application&nbsp;ID</span><span>@assessment.ApplicationID</span></div>
             <div><span class="info-label">Type</span><span>@assessment.AssessmentType</span></div>
             <div><span class="info-label">Criticality</span><span>@assessment.Criticality</span></div>
         </div>
-
 
         @if (!string.IsNullOrEmpty(assessment.SolutionDesignImagePath))
         {
@@ -65,146 +63,141 @@
             </RadzenColumn>
         </RadzenRow>
 
-
         @if (rowsWithNotes.Any())
         {
             <RadzenHeading Size="H5" Text="Capabilities with Reviewer Notes"
                            Style="color:#c62828;margin:0.5rem 0;" />
 
-           <RadzenDataGrid TItem="RRow"
-                Data="@rowsWithNotes"
-                ExpandMode="DataGridExpandMode.Multiple"
-                ShowExpandColumn="true"
-                AllowSorting="true"
-                AllowFiltering="false"
-                Class="flagged-grid"
-                Style="width:100%;">
-
-    <Columns>
-
-        <RadzenDataGridColumn TItem="RRow"
-                              Property="Cluster"
-                              Title="Cluster"
-                              Width="165px" />
-
-
-        <RadzenDataGridColumn TItem="RRow" Title="SubCtrl" Width="150px">
-            <Template Context="r">
-                @foreach (var id in r.SubCtrls)
-                {
-                    <div class="cap-cell"
-                         @onmouseover="() => Hover(r.CapName)"
-                         @onmouseout="ClearHover">@id</div>
-                }
-            </Template>
-        </RadzenDataGridColumn>
-        
-        <RadzenDataGridColumn TItem="RRow" Title="Capability" Width="300px">
-            <Template Context="r">
-                <div class="cap-cell long-text"
-                     @onmouseover="() => Hover(r.CapName)"
-                     @onmouseout="ClearHover">@r.CapName</div>
-            </Template>
-        </RadzenDataGridColumn>
-
-
-    </Columns>
-
-
-    <Template Context="r">
-        <div class="detail-grid">
-            <div class="detail-label">Fulfilment:</div>
-            <div>@r.Checked</div>
-
-            <div class="detail-label">Evidence:</div>
-            <div class="long-text">@r.Evidence</div>
-        </div>
-
-        @if (UserService.Role == "Reviewer" && assessment.Status == "UnderReview")
-        {
-            <RadzenTextArea Style="width:100%;min-height:120px"
-                            @bind-Value="r.Comment" />
-
-            <div style="margin-top:.5rem;text-align:right;">
-                <RadzenButton Text="Save"
-                              Icon="save"
-                              Size="ButtonSize.Small"
-                              ButtonStyle="ButtonStyle.Primary"
-                              Style="margin-right:8px"
-                              Click="@( () => SaveComment(r) )" />
-
-                <RadzenButton Text="Delete"
-                              Icon="delete"
-                              Size="ButtonSize.Small"
-                              ButtonStyle="ButtonStyle.Danger"
-                              Click="@( () => DeleteComment(r) )" />
-            </div>
-        }
-        else
-        {
-            <div class="comment-readonly">@r.Comment</div>
-        }
-    </Template>
-</RadzenDataGrid>
-
-        }
-        
-        <div class="cluster-grids">
-        @foreach (var grp in rowsPlain.GroupBy(r => r.Cluster).OrderBy(g => g.Key.Equals("Platform Security",
-                          StringComparison.OrdinalIgnoreCase) ? 0 : 1)
-                      .ThenBy(g => g.Key))
-        {
-            <RadzenHeading Size="H5" Text="@grp.Key" Style="color:#00436a;margin:1rem 0 0.4rem;" />
-
-            <RadzenDataGrid TItem="RRow" Data="@grp.ToList()" AllowSorting="true"
-                            Class="cluster-grid" Style="width:100%;">
+            <RadzenDataGrid TItem="RRow"
+                            Data="@rowsWithNotes"
+                            ExpandMode="DataGridExpandMode.Multiple"
+                            ShowExpandColumn="true"
+                            AllowSorting="true"
+                            AllowFiltering="false"
+                            Class="flagged-grid"
+                            Style="width:100%;">
                 <Columns>
+                    <RadzenDataGridColumn TItem="RRow"
+                                          Property="Cluster"
+                                          Title="Cluster"
+                                          Width="165px" />
+
                     <RadzenDataGridColumn TItem="RRow" Title="SubCtrl" Width="150px">
                         <Template Context="r">
-                            <div class="cap-cell" @onmouseover="() => Hover(r.CapName)" @onmouseout="ClearHover">
-                                @foreach (var id in r.SubCtrls)
-                                {
-                                    <div>@id</div>
-                                }
-                            </div>
+                            @foreach (var id in r.SubCtrls)
+                            {
+                                <div class="cap-cell"
+                                     @onmouseover="() => Hover(r.CapName)"
+                                     @onmouseout="ClearHover">@id</div>
+                            }
                         </Template>
                     </RadzenDataGridColumn>
 
-
-                    <RadzenDataGridColumn TItem="RRow" Title="Capability" Width="180px" >
-                        <Template Context="r">
-                            <div class="cap-cell long-text cap-wrap"
-                                 @onmouseover="() => Hover(r.CapName)" @onmouseout="ClearHover">
-
-                                @r.CapName
-
-                                @if (assessment.Status == "UnderReview")
-                                {
-                                    <RadzenButton Icon="comment"
-                                                  Size="ButtonSize.Small"
-                                                  ButtonStyle="ButtonStyle.Light"
-                                                  Style="position:absolute;right:4px;top:2px;"
-                                                  Click="() => EditComment(r)" />
-                                    
-                                }
-                            </div>
-                        </Template>
-                    </RadzenDataGridColumn>
-
-                    <RadzenDataGridColumn TItem="RRow" Property="Checked"
-                                          Title="Fulfilment" Width="210px" />
-
-                    <RadzenDataGridColumn TItem="RRow" Title="Evidence">
+                    <RadzenDataGridColumn TItem="RRow" Title="Capability" Width="300px">
                         <Template Context="r">
                             <div class="cap-cell long-text"
-                                 @onmouseover="() => Hover(r.CapName)" @onmouseout="ClearHover">@r.Evidence</div>
+                                 @onmouseover="() => Hover(r.CapName)"
+                                 @onmouseout="ClearHover">@r.CapName</div>
                         </Template>
                     </RadzenDataGridColumn>
                 </Columns>
+
+                <Template Context="r">
+                    <div class="detail-grid">
+                        <div class="detail-label">Fulfilment:</div>
+                        <div>@r.Checked</div>
+
+                        <div class="detail-label">Evidence:</div>
+                        <div class="long-text">@r.Evidence</div>
+                    </div>
+
+                    @if (UserService.Role == "Reviewer" && assessment.Status == "UnderReview")
+                    {
+                        <RadzenTextArea Style="width:100%;min-height:120px"
+                                        @bind-Value="r.Comment" />
+
+                        <div style="margin-top:.5rem;text-align:right;">
+                            <RadzenButton Text="Save"
+                                          Icon="save"
+                                          Size="ButtonSize.Small"
+                                          ButtonStyle="ButtonStyle.Primary"
+                                          Style="margin-right:8px"
+                                          Click="@( () => SaveComment(r) )" />
+
+                            <RadzenButton Text="Delete"
+                                          Icon="delete"
+                                          Size="ButtonSize.Small"
+                                          ButtonStyle="ButtonStyle.Danger"
+                                          Click="@( () => DeleteComment(r) )" />
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="comment-readonly">@r.Comment</div>
+                    }
+                </Template>
             </RadzenDataGrid>
         }
+
+        <div class="cluster-grids">
+            @{ var gridIndex = 0; }
+            @foreach (var grp in rowsPlain
+                                .GroupBy(r => r.Cluster)
+                                .OrderBy(g => g.Key.Equals("Platform Security", StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+                                .ThenBy(g => g.Key))
+            {
+                var isFirstClusterGrid = gridIndex++ == 0;
+
+                <RadzenHeading Size="H5" Text="@grp.Key" Style="color:#00436a;margin:1rem 0 0.4rem;" />
+
+                <RadzenDataGrid TItem="RRow"
+                                Data="@grp.ToList()"
+                                Class=@($"cluster-grid{(isFirstClusterGrid ? " cluster-grid--show-header" : "")}")
+                                Style="width:100%;">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="RRow" Title="SubCtrl" Width="150px">
+                            <Template Context="r">
+                                <div class="cap-cell" @onmouseover="() => Hover(r.CapName)" @onmouseout="ClearHover">
+                                    @foreach (var id in r.SubCtrls)
+                                    {
+                                        <div>@id</div>
+                                    }
+                                </div>
+                            </Template>
+                        </RadzenDataGridColumn>
+
+                        <RadzenDataGridColumn TItem="RRow" Title="Capability" Width="180px">
+                            <Template Context="r">
+                                <div class="cap-cell long-text cap-wrap"
+                                     @onmouseover="() => Hover(r.CapName)" @onmouseout="ClearHover">
+                                    @r.CapName
+
+                                    @if (assessment.Status == "UnderReview")
+                                    {
+                                        <RadzenButton Icon="comment"
+                                                      Size="ButtonSize.Small"
+                                                      ButtonStyle="ButtonStyle.Light"
+                                                      Style="position:absolute;right:4px;top:2px;"
+                                                      Click="() => EditComment(r)" />
+                                    }
+                                </div>
+                            </Template>
+                        </RadzenDataGridColumn>
+
+                        <RadzenDataGridColumn TItem="RRow" Property="Checked"
+                                              Title="Fulfilment" Width="210px" />
+
+                        <RadzenDataGridColumn TItem="RRow" Title="Evidence">
+                            <Template Context="r">
+                                <div class="cap-cell long-text"
+                                     @onmouseover="() => Hover(r.CapName)" @onmouseout="ClearHover">@r.Evidence</div>
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+            }
         </div>
-        
+
         @if (assessment.Status is not ("Validated" or "Rejected") && UserService.Role != "Requester")
         {
             <div style="margin-top:1rem;">
@@ -230,11 +223,11 @@
             <RadzenAlert Severity="AlertSeverity.Error" Text="@errorMsg" Style="margin-top:1rem;" />
         }
     }
-    
+
     @if (commentDialogVisible && editingRow is not null)
     {
         <div class="modal-backdrop" @onclick="CancelComment"></div>
-        
+
         <div class="comment-dialog">
             <RadzenCard Style="width:500px;max-width:90vw;padding:1rem;">
                 <h4 style="margin:0 0 .5rem 0">Reviewer comment</h4>
@@ -297,10 +290,8 @@
 
     private IEnumerable<RRow> rowsWithNotes => filtered.Where(r => !string.IsNullOrWhiteSpace(r.Comment));
     private IEnumerable<RRow> rowsPlain     => filtered.Where(r =>  string.IsNullOrWhiteSpace(r.Comment));
-    
     private bool commentDialogVisible;
     private RRow  editingRow;
-    
     protected override async Task OnInitializedAsync()
     {
         assessment = await AssessmentService.GetAssessmentByIdAsync(Id);
@@ -334,7 +325,6 @@
         subCtrlOpts = rows.SelectMany(r => r.SubCtrls).Distinct().OrderBy(x => x).ToList();
     }
 
-
     async void EditComment(RRow row)
     {
         editingRow           = row;
@@ -346,16 +336,16 @@
         if (capDict.TryGetValue(row.CapName, out var cap))
             cap.ReviewerComment = row.Comment?.Trim();
 
-        await AssessmentService.UpdateAssessmentAsync(assessment);   
+        await AssessmentService.UpdateAssessmentAsync(assessment);
         commentDialogVisible = false;
         StateHasChanged();
     }
 
     async Task DeleteComment(RRow row)
     {
-        row.Comment = null;                              
+        row.Comment = null;
         if (capDict.TryGetValue(row.CapName, out var cap))
-            cap.ReviewerComment = null;                   
+            cap.ReviewerComment = null;
 
         await AssessmentService.UpdateAssessmentAsync(assessment);
         StateHasChanged();
@@ -372,7 +362,7 @@
         if (capDict.TryGetValue(row.CapName, out var cap))
             cap.ReviewerComment = row.Comment?.Trim();
     }
-    
+
     private async Task Accept()
     {
         await AssessmentService.UpdateAssessmentAsync(assessment);
@@ -388,8 +378,18 @@
         NavigationManager.NavigateTo("/review", true);
     }
 
-    private void BackToAssessmentList() =>
-        NavigationManager.NavigateTo(UserService.Role == "Requester" ? "/assessments" : "/review", true);
+    private void BackToAssessmentList()
+    {
+        var targetUrl = UserService.Role switch
+        {
+            "Requester" => "/assessments",
+            "Reviewer"  => "/review",
+            "Admin"     => "/admin/assessments",
+            _           => "/"
+        };
+
+        NavigationManager.NavigateTo(targetUrl, true);
+    }
 }
 
 <style>
@@ -416,11 +416,18 @@
           background:#EBEBE6;padding:1rem;}
 .info-bar>div{display:flex;flex-direction:column;gap:.15rem;}
 .info-label{font-size:.78rem;font-weight:700;color:#555;}
+.cluster-grids .cluster-grid .rz-datagrid-header,
+.cluster-grids .cluster-grid thead {
+    display: none !important;
+}
 
-.cluster-grids .cluster-grid .rz-datagrid-header{display:none;}
-.cluster-grids .cluster-grid:first-of-type .rz-datagrid-header{display:block;}
-
-.cap-wrap{position:relative;padding-right:26px;}  
+.cluster-grids .cluster-grid.cluster-grid--show-header .rz-datagrid-header {
+    display: block !important;
+}
+.cluster-grids .cluster-grid.cluster-grid--show-header thead {
+    display: table-header-group !important; 
+}
+.cap-wrap{position:relative;padding-right:26px;}
 .modal-backdrop{
     position:fixed; inset:0;
     background:rgba(0,0,0,.55);
@@ -444,5 +451,4 @@
     font-weight:600;
     color:#555;
 }
-
 </style>

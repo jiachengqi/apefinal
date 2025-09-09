@@ -24,8 +24,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddMudServices();
 builder.Services.AddSingleton<UserService>();
-builder.Services.AddScoped<AssessmentService>();
+builder.Services.AddScoped<IAssessmentService, AssessmentService>();
 builder.Services.AddScoped<RadzenDialog>();
+builder.Services.AddScoped<NotificationService>();
+builder.Services.AddScoped<DialogService>();
 
 
 var app = builder.Build();

@@ -1,8 +1,9 @@
 ﻿@page "/edit-assessment/{Id}"
 @using apenew.Helper
-@inject AssessmentService  AssessmentService
+@inject IAssessmentService  AssessmentService
 @inject UserService        UserService
 @inject NavigationManager  NavigationManager
+@inject DialogService DialogService
 @inject IJSRuntime         JS
 @rendermode InteractiveServer
 
@@ -156,23 +157,25 @@
                 </Tabs>
             </RadzenTabs>
         }
-
-        <!-- save / submit -->
-        <div style="margin-top:1rem;">
-            <RadzenButton Text="Save"
-                          ButtonStyle="ButtonStyle.Primary"
-                          Click="SaveAssessment"
-                          Style="margin-right:10px;" />
-            <RadzenButton Text="Submit"
-                          ButtonStyle="ButtonStyle.Success"
-                          Click="SubmitAssessment" />
-        </div>
-
-        @if (!string.IsNullOrWhiteSpace(errorMessage))
+        
+        if (UserService.Role == "Requester")
         {
-            <RadzenAlert Severity="AlertSeverity.Error"
-                         Text="@errorMessage"
-                         Style="margin-top:1rem;" />
+            <div style="margin-top:1rem;">
+                <RadzenButton Text="Save"
+                              ButtonStyle="ButtonStyle.Primary"
+                              Click="SaveAssessment"
+                              Style="margin-right:10px;" />
+                <RadzenButton Text="Submit"
+                              ButtonStyle="ButtonStyle.Success"
+                              Click="SubmitAssessment" />
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                <RadzenAlert Severity="AlertSeverity.Error"
+                             Text="@errorMessage"
+                             Style="margin-top:1rem;" />
+            }
         }
     }
 </RadzenCard>
@@ -277,7 +280,7 @@
         showGroupDescriptions.TryGetValue(name,out var v) && v;
 
     private void OnChange(int idx) => currentTabIndex = idx;
-    private void BackToAssessmentList() => NavigationManager.NavigateTo("/assessments",true);
+    private void BackToAssessmentList() => NavigationManager.NavigateTo(UserService.Role == "Requester" ? "/assessments" : "/admin/assessments", true);
 
     private async Task SaveAssessment()
     {

@@ -1,9 +1,11 @@
 ﻿using System;
+using apenew.Helper;
+
 namespace apenew.Models
 {
     public class Assessment
     {
-        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public string Id { get; set; } = Utils.GenerateRandomId();
         public string Email { get; set; }
         public DateTime CreateAt { get; set; }
         public DateTime? SubmittedAt { get; set; }

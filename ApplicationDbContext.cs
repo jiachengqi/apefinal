@@ -17,6 +17,11 @@ namespace apenew
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Assessment>()
+                .HasMany(a => a.Capabilities)
+                .WithOne()
+                .OnDelete(DeleteBehavior.Cascade);
+            
             modelBuilder.Entity<Capability>()
                 .HasOne(c => c.Assessment)
                 .WithMany(a => a.Capabilities)
