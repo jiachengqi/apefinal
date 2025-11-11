@@ -1,5 +1,6 @@
 ConnectionStrings:
-  DefaultConnection: "Host=postgres;Database=assessmentdb;Username=postgres;Password=password"
+  DefaultConnection: "Host=postgres;Port=5432;Database=assessmentdb;Username=postgres;Password=postgres"
+
 Logging:
   LogLevel:
     Default: Information

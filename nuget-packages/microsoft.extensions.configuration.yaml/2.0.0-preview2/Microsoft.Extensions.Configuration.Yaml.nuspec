@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Microsoft.Extensions.Configuration.Yaml</id>
+    <version>2.0.0-preview2</version>
+    <authors>Martin Johns</authors>
+    <owners>Martin Johns</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <licenseUrl>https://github.com/MartinJons/ConfigurationContrib/LICENSE.md</licenseUrl>
+    <projectUrl>https://github.com/MartinJohns/ConfigurationContrib/</projectUrl>
+    <description>YAML configuration provider implementation for Microsoft.Extensions.Configuration.</description>
+    <tags>configuration yaml</tags>
+    <repository type="git" url="https://github.com/MartinJohns/ConfigurationContrib/" />
+    <dependencies>
+      <group targetFramework=".NETStandard2.0">
+        <dependency id="Microsoft.Extensions.Configuration.FileExtensions" version="2.0.0-preview2-final" exclude="Build,Analyzers" />
+        <dependency id="YamlDotNet" version="4.2.1" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>

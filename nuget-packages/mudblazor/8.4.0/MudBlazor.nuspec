@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>MudBlazor</id>
+    <version>8.4.0</version>
+    <authors>Garderoben, Henon and Contributors</authors>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <icon>Nuget.png</icon>
+    <readme>README.md</readme>
+    <projectUrl>https://mudblazor.com/</projectUrl>
+    <description>Blazor Component Library based on Material Design principles with an emphasis on ease of use and extensibility</description>
+    <copyright>Copyright 2024 MudBlazor</copyright>
+    <tags>Blazor, MudBlazor, Material, Material Design, Components, Blazor Components, Blazor Library</tags>
+    <repository type="git" url="https://github.com/MudBlazor/MudBlazor" commit="0b959056202d96d3205ee57ec77dfd710f2670fa" />
+    <dependencies>
+      <group targetFramework="net8.0">
+        <dependency id="Microsoft.AspNetCore.Components" version="8.0.12" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.AspNetCore.Components.Web" version="8.0.12" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Extensions.Localization" version="8.0.12" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework="net9.0">
+        <dependency id="Microsoft.AspNetCore.Components" version="9.0.1" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.AspNetCore.Components.Web" version="9.0.1" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Extensions.Localization" version="9.0.1" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>
