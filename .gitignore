@@ -2,6 +2,7 @@
 /bin/
 /obj/
 /out/
+*.tar
 
 # User-specific files
 *.user
